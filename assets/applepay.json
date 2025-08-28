@@ -1,0 +1,12 @@
+
+{
+  "provider": "apple_pay",
+  "data": {
+    "merchantIdentifier": "merchant.com.maisvida.app",
+    "displayName": "Mais Vida",
+    "merchantCapabilities": ["3DS", "debit", "credit"],
+    "supportedNetworks": ["visa", "masterCard"],
+    "countryCode": "BR",
+    "currencyCode": "BRL"
+  }
+}
