@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:pay/pay.dart';
-import 'pagamento_cartao.dart';
-import 'pagamento_pix.dart';
 
 class AssinaturasPage extends StatelessWidget {
   const AssinaturasPage({super.key});
