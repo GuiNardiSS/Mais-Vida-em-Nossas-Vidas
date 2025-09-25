@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'inicio.dart';
 import 'cartas_do_dia.dart';
@@ -16,8 +15,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   final _pages = const [
-    InicioPage(),
     CartasDoDiaPage(),
+    ConhecaMaisPage(),
     ContatoPage(),
     ConteudoPage(),
     EspiritualidadeDiaPage(),
@@ -47,14 +46,25 @@ class _HomePageState extends State<HomePage> {
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(color: Colors.deepPurple),
-              child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
+              child: Text('Menu',
+                  style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
-            ListTile(title: const Text('Início'), onTap: () => _onItemTapped(0)),
-            ListTile(title: const Text('Cartas do Dia'), onTap: () => _onItemTapped(1)),
-            ListTile(title: const Text('Contato'), onTap: () => _onItemTapped(2)),
-            ListTile(title: const Text('Conteúdo'), onTap: () => _onItemTapped(3)),
-            ListTile(title: const Text('Espiritualidade no dia a dia'), onTap: () => _onItemTapped(4)),
-            ListTile(title: const Text('Assinaturas'), onTap: () => _onItemTapped(5)),
+            ListTile(
+                title: const Text('Cartas do Dia'),
+                onTap: () => _onItemTapped(0)),
+            ListTile(
+                title: const Text('Conheça Mais'),
+                onTap: () => _onItemTapped(1)),
+            ListTile(
+                title: const Text('Contato'), onTap: () => _onItemTapped(2)),
+            ListTile(
+                title: const Text('Conteúdo'), onTap: () => _onItemTapped(3)),
+            ListTile(
+                title: const Text('Espiritualidade no dia a dia'),
+                onTap: () => _onItemTapped(4)),
+            ListTile(
+                title: const Text('Assinaturas'),
+                onTap: () => _onItemTapped(5)),
           ],
         ),
       ),

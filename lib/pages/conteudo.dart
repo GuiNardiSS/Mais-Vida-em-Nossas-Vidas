@@ -26,13 +26,19 @@ class _ConteudoPageState extends State<ConteudoPage> {
     final raw = prefs.getString('conteudos');
     if (raw != null) {
       final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
-      conteudos = list.map((e) => e.map((k,v)=>MapEntry(k, v.toString()))).toList();
+      conteudos =
+          list.map((e) => e.map((k, v) => MapEntry(k, v.toString()))).toList();
     } else {
       conteudos = [
-        {'titulo':'Entrevista','descricao':'Transforme sua energia no trabalho.','youtube':'https://youtube.com','instagram':'https://instagram.com'}
+        {
+          'titulo': 'Entrevista',
+          'descricao': 'Transforme sua energia no trabalho.',
+          'youtube': 'https://youtube.com',
+          'instagram': 'https://instagram.com'
+        }
       ];
     }
-    setState((){});
+    setState(() {});
   }
 
   Future<void> _add() async {
@@ -45,9 +51,14 @@ class _ConteudoPageState extends State<ConteudoPage> {
     conteudos.insert(0, item);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('conteudos', jsonEncode(conteudos));
-    tituloCtrl.clear(); descCtrl.clear(); ytCtrl.clear(); igCtrl.clear();
-    setState((){});
+    tituloCtrl.clear();
+    descCtrl.clear();
+    ytCtrl.clear();
+    igCtrl.clear();
+    setState(() {});
   }
+
+  bool isAdmin = true; // Troque para false para usuário comum
 
   @override
   Widget build(BuildContext context) {
@@ -55,53 +66,130 @@ class _ConteudoPageState extends State<ConteudoPage> {
       appBar: AppBar(
         title: const Text('Conteúdo'),
         centerTitle: true,
+        actions: [
+          if (isAdmin)
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline, size: 28),
+              tooltip: 'Adicionar conteúdo',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Novo conteúdo'),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          TextField(
+                              controller: tituloCtrl,
+                              decoration:
+                                  const InputDecoration(labelText: 'Título')),
+                          TextField(
+                              controller: descCtrl,
+                              decoration: const InputDecoration(
+                                  labelText: 'Descrição')),
+                          TextField(
+                              controller: ytCtrl,
+                              decoration: const InputDecoration(
+                                  labelText: 'Link YouTube')),
+                          TextField(
+                              controller: igCtrl,
+                              decoration: const InputDecoration(
+                                  labelText: 'Link Instagram')),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          _add();
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Salvar'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Cancelar'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children:  [
-              Image.asset(
-                'assets/conteudo_img.png', // Salve a imagem da página 7 como 'conteudo_img.png'
-                width: 180,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Conteúdo Exclusivo',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Aprofunde-se em temas de espiritualidade, autoconhecimento e bem-estar. Aqui você encontra artigos, vídeos e reflexões cuidadosamente selecionados para inspirar sua jornada e transformar seu dia a dia.',
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              const Text('Novo conteúdo do dia', style: TextStyle(fontWeight: FontWeight.bold)),
-              TextField(controller: tituloCtrl, decoration: const InputDecoration(labelText: 'Título')),
-              TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Descrição')),
-              TextField(controller: ytCtrl, decoration: const InputDecoration(labelText: 'Link YouTube')),
-              TextField(controller: igCtrl, decoration: const InputDecoration(labelText: 'Link Instagram')),
-              const SizedBox(height: 8),
-              ElevatedButton(onPressed: _add, child: const Text('Adicionar')),
-              const SizedBox(height: 16),
-              const Divider(),
-              const Text('Conteúdos', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              for (final c in conteudos)
-                Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 1.1,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: conteudos.length,
+          itemBuilder: (context, index) {
+            final c = conteudos[index];
+            return GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
                     title: Text(c['titulo'] ?? ''),
-                    subtitle: Text(c['descricao'] ?? ''),
-                    trailing: const Icon(Icons.link),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(c['descricao'] ?? ''),
+                        if ((c['youtube'] ?? '').isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text('YouTube: ${c['youtube']}'),
+                          ),
+                        if ((c['instagram'] ?? '').isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text('Instagram: ${c['instagram']}'),
+                          ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Fechar'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        c['titulo'] ?? '',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        c['descricao'] ?? '',
+                        style: const TextStyle(fontSize: 13),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-            ],
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

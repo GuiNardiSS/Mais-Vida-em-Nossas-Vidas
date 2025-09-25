@@ -24,3 +24,5 @@ flutter:
   assets:
     - assets/gpay.json
     - assets/applepay.json
+    - assets/cartas_do_dia/
+    - assets/cartas_do_dia_org/
