@@ -14,6 +14,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
   final ytCtrl = TextEditingController();
   final igCtrl = TextEditingController();
   List<Map<String, String>> conteudos = [];
+  final bool isAdmin = true; // Troque para false para usuário comum
 
   @override
   void initState() {
@@ -57,8 +58,6 @@ class _ConteudoPageState extends State<ConteudoPage> {
     igCtrl.clear();
     setState(() {});
   }
-
-  bool isAdmin = true; // Troque para false para usuário comum
 
   @override
   Widget build(BuildContext context) {
