@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class CartasDoDiaPage extends StatefulWidget {
   const CartasDoDiaPage({super.key});
@@ -19,95 +22,129 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
 
   int? cartaSelecionada;
   int? cartaOrgSelecionada;
-  bool cartasReveladas = false;
-  bool cartasOrgReveladas = false;
+  // Mostrar todas as cartas imediatamente
+  bool cartasReveladas = true;
+  bool cartasOrgReveladas = true;
   late TabController _tabController;
+  // Cache de assets e manifest
+  Set<String>? _assetSet;
+  final Map<int, String?> _cacheDia = {};
+  final Map<int, String?> _cacheOrg = {};
+
+  // Persistência diária
+  static const _kDiaIndexKey = 'carta_dia_index';
+  static const _kDiaDateKey = 'carta_dia_date';
+  static const _kOrgIndexKey = 'carta_org_index';
+  static const _kOrgDateKey = 'carta_org_date';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _initAsync();
   }
 
-  void _mostrarCartas() {
+  Future<void> _initAsync() async {
+    // Carrega manifest uma vez
+    await _ensureManifestLoaded();
+    // Carrega estado persistido
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayKey();
+
+    final diaDate = prefs.getString(_kDiaDateKey);
+    final diaIndex = prefs.getInt(_kDiaIndexKey);
+    final orgDate = prefs.getString(_kOrgDateKey);
+    final orgIndex = prefs.getInt(_kOrgIndexKey);
+
+    int? diaSel;
+    int? orgSel;
+    if (diaDate == today && diaIndex != null) {
+      diaSel = diaIndex;
+    }
+    if (orgDate == today && orgIndex != null) {
+      orgSel = orgIndex;
+    }
+    if (!mounted) return;
     setState(() {
-      cartasReveladas = true;
+      cartaSelecionada = diaSel;
+      cartaOrgSelecionada = orgSel;
     });
   }
 
-  void _mostrarCartasOrg() {
+  String _todayKey() {
+    final now = DateTime.now();
+    final m = now.month.toString().padLeft(2, '0');
+    final d = now.day.toString().padLeft(2, '0');
+    return '${now.year}-$m-$d';
+  }
+
+  Future<void> _ensureManifestLoaded() async {
+    if (_assetSet != null) return;
+    final manifestJson = await rootBundle.loadString('AssetManifest.json');
+    final Map<String, dynamic> manifest = json.decode(manifestJson);
+    _assetSet = manifest.keys.toSet();
+  }
+
+  Future<String?> _resolveCartaAssetCached(
+      String folder, int index, Map<int, String?> cache) async {
+    if (cache.containsKey(index)) return cache[index];
+    await _ensureManifestLoaded();
+    final assets = _assetSet ?? {};
+    final n = index + 1;
+    final candidates = <String>[
+      '$folder/Back ($n).png',
+      '$folder/Back($n).png',
+      '$folder/Back $n.png',
+      '$folder/Back ($n).PNG',
+      '$folder/Back($n).PNG',
+      '$folder/Back $n.PNG',
+      '$folder/Back.png',
+    ];
+    for (final c in candidates) {
+      if (assets.contains(c)) {
+        cache[index] = c;
+        return c;
+      }
+    }
+    cache[index] = null;
+    return null;
+  }
+
+  // Métodos antigos removidos; todas as cartas são exibidas diretamente nas abas.
+
+  Future<void> _selecionarCarta(int index) async {
+    // Comentado temporariamente para permitir múltiplas seleções durante testes
+    // if (cartaSelecionada == null) {
     setState(() {
-      cartasOrgReveladas = true;
+      cartaSelecionada = index;
     });
-  }
+    // Persistir seleção para hoje
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kDiaIndexKey, index);
+    await prefs.setString(_kDiaDateKey, _todayKey());
 
-  void _selecionarCarta(int index) {
-    if (cartaSelecionada == null) {
-      setState(() {
-        cartaSelecionada = index;
-      });
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text(cartas[index]),
-          content: SizedBox(
-            width: 250,
-            child: Image.asset(
-              'assets/cartas_do_dia/Back (${index + 1}).png',
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Text('Imagem não encontrada'),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      _mostrarBloqueio();
-    }
-  }
-
-  void _selecionarCartaOrg(int index) {
-    if (cartaOrgSelecionada == null) {
-      setState(() {
-        cartaOrgSelecionada = index;
-      });
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text(cartasOrganizacao[index]),
-          content: SizedBox(
-            width: 250,
-            child: Image.asset(
-              'assets/cartas_do_dia_org/Back (${index + 1}).png',
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Text('Imagem não encontrada'),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      _mostrarBloqueio();
-    }
-  }
-
-  void _mostrarBloqueio() {
+    final assetPath = await _resolveCartaAssetCached(
+        'assets/cartas_do_dia', index, _cacheDia);
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Aviso'),
-        content: const Text(
-            'Carta do dia utilizada! Volte amanhã e descubra o que a espiritualidade aguarda para você.'),
+        title: Text(cartas[index]),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 500,
+          child: assetPath != null
+              ? Image.asset(assetPath, fit: BoxFit.cover)
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.image_not_supported, size: 48),
+                    SizedBox(height: 8),
+                    Text(
+                        'Imagem da carta não encontrada.\nVerifique os assets.'),
+                  ],
+                ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -116,7 +153,58 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
         ],
       ),
     );
+    // } else {
+    //   _mostrarBloqueio();
+    // }
   }
+
+  Future<void> _selecionarCartaOrg(int index) async {
+    // Comentado temporariamente para permitir múltiplas seleções durante testes
+    // if (cartaOrgSelecionada == null) {
+    setState(() {
+      cartaOrgSelecionada = index;
+    });
+    // Persistir seleção para hoje
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_kOrgIndexKey, index);
+    await prefs.setString(_kOrgDateKey, _todayKey());
+
+    final assetPath = await _resolveCartaAssetCached(
+        'assets/cartas_do_dia_org', index, _cacheOrg);
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(cartasOrganizacao[index]),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 500,
+          child: assetPath != null
+              ? Image.asset(assetPath, fit: BoxFit.cover)
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.image_not_supported, size: 48),
+                    SizedBox(height: 8),
+                    Text(
+                        'Imagem da carta não encontrada.\nVerifique os assets.'),
+                  ],
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    // } else {
+    //   _mostrarBloqueio();
+    // }
+  }
+
+  // Método _mostrarBloqueio removido temporariamente para permitir múltiplas seleções durante testes
 
   @override
   Widget build(BuildContext context) {
@@ -143,10 +231,10 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
   }
 
   Widget _buildCartasDia() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text(
             'Cartas do Dia',
@@ -159,40 +247,54 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
-          if (!cartasReveladas)
-            ElevatedButton(
-              onPressed: _mostrarCartas,
-              child: const Text('Mostrar Cartas'),
-            ),
-          if (cartasReveladas)
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: List.generate(
-                50,
-                (i) => ElevatedButton(
-                  onPressed: cartaSelecionada == null
-                      ? () => _selecionarCarta(i)
-                      : () => _mostrarBloqueio(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        cartaSelecionada == i ? Colors.deepPurple : null,
+          const SizedBox(height: 24),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: List.generate(
+              50,
+              (i) => Tooltip(
+                message: 'Carta ${i + 1}',
+                child: Semantics(
+                  button: true,
+                  label: 'Carta ${i + 1}',
+                  enabled: true,
+                  child: ElevatedButton(
+                    onPressed: () => _selecionarCarta(i),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: cartaSelecionada == i
+                          ? const Color(0xFF0b4c52)
+                          : const Color(0xFFa99045),
+                      foregroundColor: Colors.white,
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 12),
+                    ),
+                    child: Text('Carta ${i + 1}'),
                   ),
-                  child: Text('Carta ${i + 1}'),
                 ),
               ),
             ),
+          ),
+          if (cartaSelecionada != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              'Carta escolhida: Carta ${cartaSelecionada! + 1}. Nova seleção disponível amanhã.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ],
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
   Widget _buildCartasOrganizacao() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text(
             'Cartas para sua organização',
@@ -205,30 +307,44 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
-          if (!cartasOrgReveladas)
-            ElevatedButton(
-              onPressed: _mostrarCartasOrg,
-              child: const Text('Mostrar Cartas'),
-            ),
-          if (cartasOrgReveladas)
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: List.generate(
-                50,
-                (i) => ElevatedButton(
-                  onPressed: cartaOrgSelecionada == null
-                      ? () => _selecionarCartaOrg(i)
-                      : () => _mostrarBloqueio(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        cartaOrgSelecionada == i ? Colors.deepPurple : null,
+          const SizedBox(height: 24),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: List.generate(
+              50,
+              (i) => Tooltip(
+                message: 'Carta Org ${i + 1}',
+                child: Semantics(
+                  button: true,
+                  label: 'Carta da organização ${i + 1}',
+                  enabled: true,
+                  child: ElevatedButton(
+                    onPressed: () => _selecionarCartaOrg(i),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: cartaOrgSelecionada == i
+                          ? const Color(0xFF0b4c52)
+                          : const Color(0xFFa99045),
+                      foregroundColor: Colors.white,
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 12),
+                    ),
+                    child: Text('Carta Org ${i + 1}'),
                   ),
-                  child: Text('Carta Org ${i + 1}'),
                 ),
               ),
             ),
+          ),
+          if (cartaOrgSelecionada != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              'Carta da organização escolhida: ${cartaOrgSelecionada! + 1}. Nova seleção disponível amanhã.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ],
+          const SizedBox(height: 24),
         ],
       ),
     );
