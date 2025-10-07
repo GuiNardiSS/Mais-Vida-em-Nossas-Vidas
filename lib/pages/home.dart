@@ -5,6 +5,7 @@ import 'contato.dart';
 import 'conteudo.dart';
 import 'espiritualidade_dia.dart';
 import 'assinaturas.dart';
+import '../services/palette.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,7 +15,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  final _pages = const [
+  final List<Widget> _pages = [
     CartasDoDiaPage(),
     ConhecaMaisPage(),
     ContatoPage(),
@@ -30,6 +31,38 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final items = [
+      (
+        title: 'Cartas do Dia',
+        icon: Icons.auto_awesome,
+        builderIndex: 0,
+      ),
+      (
+        title: 'Conheça Mais',
+        icon: Icons.info_outline,
+        builderIndex: 1,
+      ),
+      (
+        title: 'Contato',
+        icon: Icons.mail_outline,
+        builderIndex: 2,
+      ),
+      (
+        title: 'Conteúdo',
+        icon: Icons.article_outlined,
+        builderIndex: 3,
+      ),
+      (
+        title: 'Espiritualidade no dia a dia',
+        icon: Icons.self_improvement,
+        builderIndex: 4,
+      ),
+      (
+        title: 'Assinaturas',
+        icon: Icons.credit_card,
+        builderIndex: 5,
+      ),
+    ];
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mais Vida em Nossas Vidas'),
@@ -41,31 +74,57 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.deepPurple),
-              child: Text('Menu',
-                  style: TextStyle(color: Colors.white, fontSize: 24)),
-            ),
-            ListTile(
-                title: const Text('Cartas do Dia'),
-                onTap: () => _onItemTapped(0)),
-            ListTile(
-                title: const Text('Conheça Mais'),
-                onTap: () => _onItemTapped(1)),
-            ListTile(
-                title: const Text('Contato'), onTap: () => _onItemTapped(2)),
-            ListTile(
-                title: const Text('Conteúdo'), onTap: () => _onItemTapped(3)),
-            ListTile(
-                title: const Text('Espiritualidade no dia a dia'),
-                onTap: () => _onItemTapped(4)),
-            ListTile(
-                title: const Text('Assinaturas'),
-                onTap: () => _onItemTapped(5)),
-          ],
+        child: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: AppColors.logoGold,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: AppColors.logoPrimary,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.logoGold, width: 4),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.menu,
+                            color: AppColors.logoGold, size: 40),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Menu',
+                      style: TextStyle(
+                        color: AppColors.logoPrimary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ...items.map((it) => ListTile(
+                    leading: Icon(it.icon),
+                    title: Text(it.title),
+                    selected: _selectedIndex == it.builderIndex,
+                    selectedColor: AppColors.logoGold,
+                    selectedTileColor:
+                        AppColors.logoGold.withValues(alpha: 0.12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    onTap: () => _onItemTapped(it.builderIndex),
+                  )),
+            ],
+          ),
         ),
       ),
       body: _pages[_selectedIndex],
