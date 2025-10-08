@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               DrawerHeader(
                 decoration: const BoxDecoration(
-                  color: AppColors.logoGold,
+                  color: AppColors.logoPrimary,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -89,20 +89,27 @@ class _HomePageState extends State<HomePage> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppColors.logoPrimary,
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.logoGold, width: 4),
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: const Center(
                         child: Icon(Icons.menu,
-                            color: AppColors.logoGold, size: 40),
+                            color: AppColors.logoPrimary, size: 40),
                       ),
                     ),
                     const SizedBox(height: 12),
                     const Text(
                       'Menu',
                       style: TextStyle(
-                        color: AppColors.logoPrimary,
+                        color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
@@ -115,9 +122,9 @@ class _HomePageState extends State<HomePage> {
                     leading: Icon(it.icon),
                     title: Text(it.title),
                     selected: _selectedIndex == it.builderIndex,
-                    selectedColor: AppColors.logoGold,
+                    selectedColor: AppColors.logoPrimary,
                     selectedTileColor:
-                        AppColors.logoGold.withValues(alpha: 0.12),
+                        AppColors.logoPrimary.withValues(alpha: 0.15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
