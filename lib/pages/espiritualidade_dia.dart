@@ -77,8 +77,6 @@ class EspiritualidadeDiaPage extends StatelessWidget {
                       return Card(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(
-                              color: Color(0xFFa99045), width: 1),
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: InkWell(
@@ -93,8 +91,22 @@ class EspiritualidadeDiaPage extends StatelessWidget {
                                   imgPath,
                                   fit: BoxFit.cover,
                                   errorBuilder: (ctx, e, st) => const Center(
-                                    child: Icon(Icons.image,
-                                        color: Colors.white70, size: 48),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.add_photo_alternate_outlined,
+                                            color: Colors.white70, size: 32),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          'Imagem',
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -162,12 +174,18 @@ void _mostrarDetalhes(BuildContext context, Map<String, String> parceiro) {
   showDialog(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: Text(parceiro['nome'] ?? ''),
+      title: Text(
+        parceiro['nome'] ?? '',
+        style: const TextStyle(color: Colors.black),
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(parceiro['descricao'] ?? ''),
+          Text(
+            parceiro['descricao'] ?? '',
+            style: const TextStyle(color: Colors.black),
+          ),
           const SizedBox(height: 12),
           InkWell(
             onTap: () => _abrirContato(parceiro['contato'] ?? ''),
@@ -194,11 +212,17 @@ void _mostrarDetalhes(BuildContext context, Map<String, String> parceiro) {
               );
             }
           },
-          child: const Text('Copiar contato'),
+          child: const Text(
+            'Copiar contato',
+            style: TextStyle(color: Colors.black),
+          ),
         ),
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text('Fechar'),
+          child: const Text(
+            'Fechar',
+            style: TextStyle(color: Colors.black),
+          ),
         ),
       ],
     ),
@@ -206,7 +230,8 @@ void _mostrarDetalhes(BuildContext context, Map<String, String> parceiro) {
 }
 
 String _parceiroImagePath(String nome) {
-  // Nome -> arquivo simples: YogaZen.png, Espaco Luz Divina -> espaco_luz_divina.png, etc.
+  // Converte nome do parceiro para nome do arquivo de imagem
+  // Exemplo: "YogaZen" -> "yogazen.png", "Espaço Luz Divina" -> "espaco_luz_divina.png"
   final simple = nome
       .toLowerCase()
       .replaceAll('ç', 'c')
@@ -215,6 +240,8 @@ String _parceiroImagePath(String nome) {
       .replaceAll('í', 'i')
       .replaceAll('ó', 'o')
       .replaceAll('ú', 'u')
+      .replaceAll('ã', 'a')
+      .replaceAll('õ', 'o')
       .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
       .replaceAll(RegExp(r'_+'), '_')
       .replaceAll(RegExp(r'^_|_$'), '');

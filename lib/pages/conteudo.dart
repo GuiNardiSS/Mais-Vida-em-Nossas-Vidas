@@ -74,7 +74,10 @@ class _ConteudoPageState extends State<ConteudoPage> {
                 showDialog(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: const Text('Novo conteúdo'),
+                    title: const Text(
+                      'Novo conteúdo',
+                      style: TextStyle(color: Colors.black),
+                    ),
                     content: SingleChildScrollView(
                       child: Column(
                         children: [
@@ -103,11 +106,17 @@ class _ConteudoPageState extends State<ConteudoPage> {
                           _add();
                           Navigator.of(context).pop();
                         },
-                        child: const Text('Salvar'),
+                        child: const Text(
+                          'Salvar',
+                          style: TextStyle(color: Colors.black),
+                        ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancelar'),
+                        child: const Text(
+                          'Cancelar',
+                          style: TextStyle(color: Colors.black),
+                        ),
                       ),
                     ],
                   ),
@@ -133,28 +142,43 @@ class _ConteudoPageState extends State<ConteudoPage> {
                 showDialog(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: Text(c['titulo'] ?? ''),
+                    title: Text(
+                      c['titulo'] ?? '',
+                      style: const TextStyle(color: Colors.black),
+                    ),
                     content: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(c['descricao'] ?? ''),
+                        Text(
+                          c['descricao'] ?? '',
+                          style: const TextStyle(color: Colors.black),
+                        ),
                         if ((c['youtube'] ?? '').isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 8),
-                            child: Text('YouTube: ${c['youtube']}'),
+                            child: Text(
+                              'YouTube: ${c['youtube']}',
+                              style: const TextStyle(color: Colors.black),
+                            ),
                           ),
                         if ((c['instagram'] ?? '').isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text('Instagram: ${c['instagram']}'),
+                            child: Text(
+                              'Instagram: ${c['instagram']}',
+                              style: const TextStyle(color: Colors.black),
+                            ),
                           ),
                       ],
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Fechar'),
+                        child: const Text(
+                          'Fechar',
+                          style: TextStyle(color: Colors.black),
+                        ),
                       ),
                     ],
                   ),
