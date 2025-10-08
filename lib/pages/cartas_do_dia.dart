@@ -128,29 +128,77 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
     if (!mounted) return;
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(cartas[index]),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 500,
-          child: assetPath != null
-              ? Image.asset(assetPath, fit: BoxFit.cover)
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.image_not_supported, size: 48),
-                    SizedBox(height: 8),
-                    Text(
-                        'Imagem da carta não encontrada.\nVerifique os assets.'),
-                  ],
+      barrierDismissible: true,
+      builder: (_) => Dialog.fullscreen(
+        backgroundColor: Colors.black.withValues(alpha: 0.9),
+        child: Stack(
+          children: [
+            // Carta preenchendo toda a tela
+            Center(
+              child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                padding: const EdgeInsets.all(20),
+                child: assetPath != null
+                    ? InteractiveViewer(
+                        child: Image.asset(
+                          assetPath,
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.image_not_supported,
+                              size: 48, color: Colors.white),
+                          SizedBox(height: 8),
+                          Text(
+                            'Imagem da carta não encontrada.\nVerifique os assets.',
+                            style: TextStyle(color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            // Botão de fechar no canto superior direito
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.black.withValues(alpha: 0.5),
+                  shape: const CircleBorder(),
                 ),
+              ),
+            ),
+            // Título da carta no canto superior esquerdo
+            Positioned(
+              top: 40,
+              left: 20,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  cartas[index],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
       ),
     );
     // } else {
@@ -174,29 +222,77 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
     if (!mounted) return;
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(cartasOrganizacao[index]),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 500,
-          child: assetPath != null
-              ? Image.asset(assetPath, fit: BoxFit.cover)
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.image_not_supported, size: 48),
-                    SizedBox(height: 8),
-                    Text(
-                        'Imagem da carta não encontrada.\nVerifique os assets.'),
-                  ],
+      barrierDismissible: true,
+      builder: (_) => Dialog.fullscreen(
+        backgroundColor: Colors.black.withValues(alpha: 0.9),
+        child: Stack(
+          children: [
+            // Carta preenchendo toda a tela
+            Center(
+              child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                padding: const EdgeInsets.all(20),
+                child: assetPath != null
+                    ? InteractiveViewer(
+                        child: Image.asset(
+                          assetPath,
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.image_not_supported,
+                              size: 48, color: Colors.white),
+                          SizedBox(height: 8),
+                          Text(
+                            'Imagem da carta não encontrada.\nVerifique os assets.',
+                            style: TextStyle(color: Colors.white),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            // Botão de fechar no canto superior direito
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.black.withValues(alpha: 0.5),
+                  shape: const CircleBorder(),
                 ),
+              ),
+            ),
+            // Título da carta no canto superior esquerdo
+            Positioned(
+              top: 40,
+              left: 20,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  cartasOrganizacao[index],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
       ),
     );
     // } else {
@@ -248,33 +344,72 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: List.generate(
-              50,
-              (i) => Tooltip(
-                message: 'Carta ${i + 1}',
-                child: Semantics(
-                  button: true,
-                  label: 'Carta ${i + 1}',
-                  enabled: true,
-                  child: ElevatedButton(
-                    onPressed: () => _selecionarCarta(i),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: cartaSelecionada == i
-                          ? const Color(0xFF0b4c52)
-                          : const Color(0xFFa99045),
-                      foregroundColor: Colors.white,
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 18, vertical: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Calcula quantas colunas cabem na tela com tamanho mínimo de 80px por botão
+              final int crossAxisCount =
+                  (constraints.maxWidth / 80).floor().clamp(3, 8);
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: 2.2, // Proporção retangular para os botões
+                ),
+                itemCount: 50,
+                itemBuilder: (context, i) => Tooltip(
+                  message: 'Carta ${i + 1}',
+                  child: Semantics(
+                    button: true,
+                    label: 'Carta ${i + 1}',
+                    enabled: true,
+                    child: ElevatedButton(
+                      onPressed: () => _selecionarCarta(i),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: cartaSelecionada == i
+                            ? const Color(0xFF0b4c52)
+                            : const Color(0xFFa99045),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        minimumSize: const Size(60, 30),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              'assets/logo_carta_dia.png',
+                              width: 20,
+                              height: 12,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.auto_awesome,
+                                      size: 12, color: Colors.white),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${i + 1}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: Text('Carta ${i + 1}'),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
           if (cartaSelecionada != null) ...[
             const SizedBox(height: 16),
@@ -308,33 +443,72 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: List.generate(
-              50,
-              (i) => Tooltip(
-                message: 'Carta Org ${i + 1}',
-                child: Semantics(
-                  button: true,
-                  label: 'Carta da organização ${i + 1}',
-                  enabled: true,
-                  child: ElevatedButton(
-                    onPressed: () => _selecionarCartaOrg(i),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: cartaOrgSelecionada == i
-                          ? const Color(0xFF0b4c52)
-                          : const Color(0xFFa99045),
-                      foregroundColor: Colors.white,
-                      shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 18, vertical: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Calcula quantas colunas cabem na tela com tamanho mínimo de 80px por botão
+              final int crossAxisCount =
+                  (constraints.maxWidth / 80).floor().clamp(3, 8);
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: 2.2, // Proporção retangular para os botões
+                ),
+                itemCount: 50,
+                itemBuilder: (context, i) => Tooltip(
+                  message: 'Carta Org ${i + 1}',
+                  child: Semantics(
+                    button: true,
+                    label: 'Carta da organização ${i + 1}',
+                    enabled: true,
+                    child: ElevatedButton(
+                      onPressed: () => _selecionarCartaOrg(i),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: cartaOrgSelecionada == i
+                            ? const Color(0xFF0b4c52)
+                            : const Color(0xFFa99045),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        minimumSize: const Size(60, 30),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              'assets/logo_carta_org.png',
+                              width: 20,
+                              height: 12,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.business,
+                                      size: 12, color: Colors.white),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${i + 1}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: Text('Carta Org ${i + 1}'),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
           if (cartaOrgSelecionada != null) ...[
             const SizedBox(height: 16),
