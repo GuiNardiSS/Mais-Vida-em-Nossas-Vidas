@@ -100,12 +100,21 @@ class ConhecaMaisPage extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: Text(info['titulo'] ?? ''),
-                    content: Text(info['detalhe'] ?? ''),
+                    title: Text(
+                      info['titulo'] ?? '',
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                    content: Text(
+                      info['detalhe'] ?? '',
+                      style: const TextStyle(color: Colors.black),
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Fechar'),
+                        child: const Text(
+                          'Fechar',
+                          style: TextStyle(color: Colors.black),
+                        ),
                       ),
                     ],
                   ),
@@ -125,7 +134,7 @@ class ConhecaMaisPage extends StatelessWidget {
                         height: 48,
                         width: 48,
                         errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.info_outline, size: 48),
+                            const SizedBox(height: 48, width: 48),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -133,14 +142,6 @@ class ConhecaMaisPage extends StatelessWidget {
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 16),
                         textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        info['resumo'] ?? '',
-                        style: const TextStyle(fontSize: 13),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),

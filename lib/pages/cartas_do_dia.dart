@@ -130,7 +130,7 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
       context: context,
       barrierDismissible: true,
       builder: (_) => Dialog.fullscreen(
-        backgroundColor: Colors.black.withValues(alpha: 0.9),
+        backgroundColor: Colors.black.withValues(alpha: 0.4),
         child: Stack(
           children: [
             // Carta preenchendo toda a tela
@@ -224,7 +224,7 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
       context: context,
       barrierDismissible: true,
       builder: (_) => Dialog.fullscreen(
-        backgroundColor: Colors.black.withValues(alpha: 0.9),
+        backgroundColor: Colors.black.withValues(alpha: 0.4),
         child: Stack(
           children: [
             // Carta preenchendo toda a tela
@@ -311,8 +311,14 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Cartas do Dia'),
-            Tab(text: 'Cartas para sua organização'),
+            Tab(
+              icon: Icon(Icons.auto_awesome),
+              text: 'Cartas do Dia',
+            ),
+            Tab(
+              icon: Icon(Icons.business_center),
+              text: 'Organização',
+            ),
           ],
         ),
       ),
@@ -346,18 +352,19 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
           const SizedBox(height: 24),
           LayoutBuilder(
             builder: (context, constraints) {
-              // Calcula quantas colunas cabem na tela com tamanho mínimo de 80px por botão
+              // Calcula quantas colunas cabem na tela com botões maiores e mais legíveis
               final int crossAxisCount =
-                  (constraints.maxWidth / 80).floor().clamp(3, 8);
+                  (constraints.maxWidth / 110).floor().clamp(3, 6);
 
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: 2.2, // Proporção retangular para os botões
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio:
+                      0.85, // Proporção mais quadrada para mostrar logo melhor
                 ),
                 itemCount: 50,
                 itemBuilder: (context, i) => Tooltip(
@@ -376,34 +383,40 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        minimumSize: const Size(60, 30),
+                        padding: const EdgeInsets.all(12),
+                        minimumSize: const Size(80, 80),
                       ),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Image.asset(
-                              'assets/logo_carta_dia.png',
-                              width: 20,
-                              height: 12,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.auto_awesome,
-                                      size: 12, color: Colors.white),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${i + 1}',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              child: Image.asset(
+                                'assets/logo_carta_dia.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.auto_awesome,
+                                        size: 32, color: Colors.white),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 4),
+                          Expanded(
+                            flex: 1,
+                            child: FittedBox(
+                              child: Text(
+                                '${i + 1}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -445,18 +458,19 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
           const SizedBox(height: 24),
           LayoutBuilder(
             builder: (context, constraints) {
-              // Calcula quantas colunas cabem na tela com tamanho mínimo de 80px por botão
+              // Calcula quantas colunas cabem na tela com botões maiores e mais legíveis
               final int crossAxisCount =
-                  (constraints.maxWidth / 80).floor().clamp(3, 8);
+                  (constraints.maxWidth / 110).floor().clamp(3, 6);
 
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: 2.2, // Proporção retangular para os botões
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio:
+                      0.85, // Proporção mais quadrada para mostrar logo melhor
                 ),
                 itemCount: 50,
                 itemBuilder: (context, i) => Tooltip(
@@ -475,34 +489,40 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        minimumSize: const Size(60, 30),
+                        padding: const EdgeInsets.all(12),
+                        minimumSize: const Size(80, 80),
                       ),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Image.asset(
-                              'assets/logo_carta_org.png',
-                              width: 20,
-                              height: 12,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.business,
-                                      size: 12, color: Colors.white),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${i + 1}',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              child: Image.asset(
+                                'assets/logo_carta_org.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.business_center,
+                                        size: 32, color: Colors.white),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 4),
+                          Expanded(
+                            flex: 1,
+                            child: FittedBox(
+                              child: Text(
+                                '${i + 1}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
