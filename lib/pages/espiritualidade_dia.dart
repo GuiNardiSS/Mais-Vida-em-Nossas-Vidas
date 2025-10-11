@@ -34,10 +34,6 @@ class EspiritualidadeDiaPage extends StatelessWidget {
       },
     ];
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Espiritualidade no Dia a Dia'),
-        centerTitle: true,
-      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 600;
@@ -74,9 +70,18 @@ class EspiritualidadeDiaPage extends StatelessWidget {
                     (context, index) {
                       final p = parceiros[index];
                       final imgPath = _parceiroImagePath(p['nome']!);
-                      return Card(
-                        shape: RoundedRectangleBorder(
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withValues(alpha: 0.1),
+                              spreadRadius: 1,
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: InkWell(

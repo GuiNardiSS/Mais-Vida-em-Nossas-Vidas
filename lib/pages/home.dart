@@ -14,19 +14,21 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 0; // Inicia na primeira tela (Cartas do Dia)
   final List<Widget> _pages = [
-    CartasDoDiaPage(),
-    ConhecaMaisPage(),
-    ContatoPage(),
-    ConteudoPage(),
-    EspiritualidadeDiaPage(),
-    AssinaturasPage(),
+    const CartasDoDiaPage(),
+    const ConhecaMaisPage(),
+    const ContatoPage(),
+    const ConteudoPage(),
+    const EspiritualidadeDiaPage(),
+    const AssinaturasPage(),
   ];
 
   void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
     Navigator.pop(context);
-    setState(() => _selectedIndex = index);
   }
 
   @override
@@ -65,7 +67,10 @@ class _HomePageState extends State<HomePage> {
     ];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mais Vida em Nossas Vidas'),
+        title: Text(
+          _selectedIndex < items.length ? items[_selectedIndex].title : 'Menu',
+        ),
+        centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),
@@ -118,17 +123,48 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              ...items.map((it) => ListTile(
-                    leading: Icon(it.icon),
-                    title: Text(it.title),
-                    selected: _selectedIndex == it.builderIndex,
-                    selectedColor: AppColors.logoPrimary,
-                    selectedTileColor:
-                        AppColors.logoPrimary.withValues(alpha: 0.15),
-                    shape: RoundedRectangleBorder(
+              ...items.map((it) => Container(
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _selectedIndex == it.builderIndex
+                          ? AppColors.logoGold.withValues(alpha: 0.2)
+                          : null,
                       borderRadius: BorderRadius.circular(8),
+                      border: _selectedIndex == it.builderIndex
+                          ? Border.all(color: AppColors.logoGold, width: 1)
+                          : null,
                     ),
-                    onTap: () => _onItemTapped(it.builderIndex),
+                    child: ListTile(
+                      leading: Icon(
+                        it.icon,
+                        color: _selectedIndex == it.builderIndex
+                            ? AppColors.logoGold
+                            : Colors.white,
+                      ),
+                      title: Text(
+                        it.title,
+                        style: TextStyle(
+                          fontWeight: _selectedIndex == it.builderIndex
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: _selectedIndex == it.builderIndex
+                              ? AppColors.logoGold
+                              : Colors.white,
+                        ),
+                      ),
+                      trailing: _selectedIndex == it.builderIndex
+                          ? const Icon(
+                              Icons.arrow_forward_ios,
+                              color: AppColors.logoGold,
+                              size: 16,
+                            )
+                          : null,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      onTap: () => _onItemTapped(it.builderIndex),
+                    ),
                   )),
             ],
           ),

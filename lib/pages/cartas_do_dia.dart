@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../widgets/audio_control_widget.dart';
+import '../services/audio_service.dart';
 
 class CartasDoDiaPage extends StatefulWidget {
   const CartasDoDiaPage({super.key});
@@ -163,12 +165,26 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                       ),
               ),
             ),
+            // Controle de áudio na parte inferior
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: AudioControlWidget(
+                cardIndex: index,
+                isOrganizacao: false,
+                cardTitle: cartas[index],
+              ),
+            ),
             // Botão de fechar no canto superior direito
             Positioned(
               top: 40,
               right: 20,
               child: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  AudioService().stopAudio();
+                  Navigator.of(context).pop();
+                },
                 icon: const Icon(Icons.close, color: Colors.white, size: 30),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.black.withValues(alpha: 0.5),
@@ -257,12 +273,26 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                       ),
               ),
             ),
+            // Controle de áudio na parte inferior
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: AudioControlWidget(
+                cardIndex: index,
+                isOrganizacao: true,
+                cardTitle: cartasOrganizacao[index],
+              ),
+            ),
             // Botão de fechar no canto superior direito
             Positioned(
               top: 40,
               right: 20,
               child: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  AudioService().stopAudio();
+                  Navigator.of(context).pop();
+                },
                 icon: const Icon(Icons.close, color: Colors.white, size: 30),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.black.withValues(alpha: 0.5),
@@ -306,20 +336,25 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cartas do Dia'),
-        centerTitle: true,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(
-              icon: Icon(Icons.auto_awesome),
-              text: 'Cartas do Dia',
-            ),
-            Tab(
-              icon: Icon(Icons.business_center),
-              text: 'Organização',
-            ),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(70),
+          child: TabBar(
+            controller: _tabController,
+            labelStyle:
+                const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            unselectedLabelStyle: const TextStyle(fontSize: 10),
+            indicatorSize: TabBarIndicatorSize.tab,
+            tabs: const [
+              Tab(
+                icon: Icon(Icons.auto_awesome, size: 20),
+                text: 'Cartas do Dia',
+              ),
+              Tab(
+                icon: Icon(Icons.business_center, size: 20),
+                text: 'Para Organizações',
+              ),
+            ],
+          ),
         ),
       ),
       body: TabBarView(
@@ -391,15 +426,14 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                         children: [
                           Expanded(
                             flex: 3,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              child: Image.asset(
-                                'assets/logo_carta_dia.png',
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.auto_awesome,
-                                        size: 32, color: Colors.white),
-                              ),
+                            child: Image.asset(
+                              'assets/logo_carta_dia.png',
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.auto_awesome,
+                                      size: 32, color: Colors.white),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -497,15 +531,14 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                         children: [
                           Expanded(
                             flex: 3,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              child: Image.asset(
-                                'assets/logo_carta_org.png',
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.business_center,
-                                        size: 32, color: Colors.white),
-                              ),
+                            child: Image.asset(
+                              'assets/logo_carta_org.png',
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.business_center,
+                                      size: 32, color: Colors.white),
                             ),
                           ),
                           const SizedBox(height: 4),
