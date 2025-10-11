@@ -100,7 +100,7 @@ class _PagamentoPixPageState extends State<PagamentoPixPage> {
           children: [
             Icon(Icons.check_circle, color: Colors.green, size: 32),
             SizedBox(width: 12),
-            Text('Pagamento Confirmado!'),
+            Text('Pagamento confirmado!'),
           ],
         ),
         content: Column(
@@ -139,6 +139,27 @@ class _PagamentoPixPageState extends State<PagamentoPixPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info, color: Colors.orange),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Modo simulado: após escanear o QR, pressione o botão para confirmar. Exibiremos "Pagamento Confirmado!".',
+                      style: TextStyle(fontSize: 12, color: Colors.orange),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             // Cabeçalho
             const Text(
               'Assinatura Premium',
@@ -176,7 +197,7 @@ class _PagamentoPixPageState extends State<PagamentoPixPage> {
                         color: Colors.green, size: 64),
                     const SizedBox(height: 16),
                     const Text(
-                      'Pagamento Confirmado!',
+                      'Pagamento confirmado!',
                       style:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),

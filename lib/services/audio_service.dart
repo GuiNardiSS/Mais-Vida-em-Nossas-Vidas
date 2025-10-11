@@ -25,6 +25,9 @@ class AudioService {
       final Map<String, dynamic> manifest = json.decode(manifestJson);
       _assetSet = manifest.keys.toSet();
       debugPrint('AudioService: Manifest carregado com \\${_assetSet!.length} assets');
+      // Ajustes iniciais do player
+      await _audioPlayer.setVolume(1.0);
+      await _audioPlayer.setReleaseMode(ReleaseMode.stop);
       _isInitialized = true;
     } catch (e) {
       debugPrint('Erro ao inicializar AudioService: $e');
@@ -95,8 +98,14 @@ class AudioService {
   }
 
   Future<bool> playCartaOrganizacao(int index) async {
-    final audioPath =
+    // Tenta primeiro o áudio específico de organização, e se não existir
+    // faz fallback para o mesmo índice das cartas do dia (mesma mensagem)
+    String? audioPath =
         await _resolveAudioPath('assets/audios_cartas_org', index);
+    if (audioPath == null) {
+      debugPrint('AudioService: fallback para cartas do dia (org índice $index)');
+      audioPath = await _resolveAudioPath('assets/audios_cartas_dia', index);
+    }
     return await _playAudio(audioPath);
   }
 
