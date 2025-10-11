@@ -108,8 +108,14 @@ class AudioService {
         await _audioPlayer.stop();
       }
 
+      // AssetSource já prefixa 'assets/', então removemos se já vier com esse prefixo
+      String sourcePath = audioPath;
+      if (sourcePath.startsWith('assets/')) {
+        sourcePath = sourcePath.substring('assets/'.length);
+      }
+
       _currentlyPlayingPath = audioPath;
-      await _audioPlayer.play(AssetSource(audioPath));
+      await _audioPlayer.play(AssetSource(sourcePath));
       return true;
     } catch (e) {
       debugPrint('Erro ao reproduzir áudio: $e');
