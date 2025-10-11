@@ -24,6 +24,7 @@ class AudioService {
       final manifestJson = await rootBundle.loadString('AssetManifest.json');
       final Map<String, dynamic> manifest = json.decode(manifestJson);
       _assetSet = manifest.keys.toSet();
+      debugPrint('AudioService: Manifest carregado com \\${_assetSet!.length} assets');
       _isInitialized = true;
     } catch (e) {
       debugPrint('Erro ao inicializar AudioService: $e');
@@ -57,6 +58,7 @@ class AudioService {
 
     for (final candidate in candidates) {
       if (assets.contains(candidate)) {
+        debugPrint('AudioService: caminho encontrado para índice $index => $candidate');
         _audioPathCache[cacheKey] = candidate;
         return candidate;
       }
@@ -74,6 +76,7 @@ class AudioService {
 
       for (final candidate in alternativeCandidates) {
         if (assets.contains(candidate)) {
+          debugPrint('AudioService: caminho alternativo encontrado para índice $index => $candidate');
           _audioPathCache[cacheKey] = candidate;
           return candidate;
         }
@@ -81,6 +84,7 @@ class AudioService {
     }
 
     _audioPathCache[cacheKey] = null;
+    debugPrint('AudioService: nenhum arquivo de áudio encontrado para índice $index em $folder');
     return null;
   }
 
@@ -115,6 +119,7 @@ class AudioService {
       }
 
       _currentlyPlayingPath = audioPath;
+      debugPrint('AudioService: tocando AssetSource($sourcePath)');
       await _audioPlayer.play(AssetSource(sourcePath));
       return true;
     } catch (e) {

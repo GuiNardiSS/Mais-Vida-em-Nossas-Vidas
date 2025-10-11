@@ -19,6 +19,8 @@ class _PagamentoCartaoPageState extends State<PagamentoCartaoPage> {
 
   bool loading = false;
   String? tipoCartao;
+  // Modo simulado: exibe "Pagamento confirmado!" sem integrar gateway
+  final bool _modoSimulado = true;
 
   // Formatadores de máscara
   final _numeroCartaoFormatter = MaskTextInputFormatter(
@@ -149,6 +151,13 @@ class _PagamentoCartaoPageState extends State<PagamentoCartaoPage> {
     }
     setState(() => loading = true);
     try {
+      if (_modoSimulado) {
+        await Future.delayed(const Duration(seconds: 1));
+        if (!mounted) return;
+        _ok();
+        return;
+      }
+
       final resp = await http.post(
         Uri.parse('http://10.0.2.2:3000/pagamento'),
         headers: {'Content-Type': 'application/json'},
@@ -200,6 +209,28 @@ class _PagamentoCartaoPageState extends State<PagamentoCartaoPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (_modoSimulado)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Modo simulado ativo: ao confirmar os dados, exibiremos "Pagamento confirmado!".',
+                          style: TextStyle(fontSize: 12, color: Colors.orange),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               // Cabeçalho
               const Text(
                 'Assinatura Premium',
