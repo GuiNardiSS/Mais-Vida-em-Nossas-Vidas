@@ -1,0 +1,37 @@
+# Instruções para Testar o Sistema de Áudio
+
+## Como Testar
+
+1. Adicione arquivos de áudio MP3 nesta pasta seguindo o formato:
+   - carta_1.mp3, carta_2.mp3, carta_3.mp3, etc.
+
+2. Execute o aplicativo com:
+   ```
+   flutter run
+   ```
+
+3. Navegue para "Cartas do Dia" e selecione uma carta
+
+4. O controle de áudio aparecerá na parte inferior da tela com:
+   - Botão de play/pause (dourado)
+   - Botão de stop (contornado)
+   - Status de reprodução
+
+## Exemplo de Teste Rápido
+
+Para testar rapidamente, você pode:
+1. Baixar um arquivo de áudio MP3 curto
+2. Renomear para "carta_1.mp3"
+3. Colocar nesta pasta
+4. Selecionar a Carta 1 no aplicativo
+
+## Funcionalidades Implementadas
+
+✅ Detecção automática de arquivos de áudio
+✅ Reprodução automática ao abrir carta
+✅ Controles play/pause/stop
+✅ Indicador visual de status
+✅ Suporte a múltiplos formatos de áudio
+✅ Cache inteligente para performance
+✅ Para áudio atual ao abrir nova carta
+✅ Interface integrada com tema do app
