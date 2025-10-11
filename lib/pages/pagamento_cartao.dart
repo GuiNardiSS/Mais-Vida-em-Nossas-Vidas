@@ -188,7 +188,7 @@ class _PagamentoCartaoPageState extends State<PagamentoCartaoPage> {
       context: context,
       builder: (_) => const AlertDialog(
         title: Text(
-          'Pagamento confirmado',
+          'Pagamento confirmado!',
           style: TextStyle(color: Colors.black),
         ),
       ),
