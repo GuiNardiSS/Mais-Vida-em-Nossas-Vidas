@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'pages/home.dart';
 import 'services/notifications.dart';
 import 'services/palette.dart';
+import 'services/route_observer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Mais Vida em Nossas Vidas',
+      navigatorObservers: [appRouteObserver],
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme(

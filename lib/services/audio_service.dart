@@ -24,7 +24,8 @@ class AudioService {
       final manifestJson = await rootBundle.loadString('AssetManifest.json');
       final Map<String, dynamic> manifest = json.decode(manifestJson);
       _assetSet = manifest.keys.toSet();
-      debugPrint('AudioService: Manifest carregado com \\${_assetSet!.length} assets');
+      debugPrint(
+          'AudioService: Manifest carregado com \\${_assetSet!.length} assets');
       // Ajustes iniciais do player
       await _audioPlayer.setVolume(1.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.stop);
@@ -41,7 +42,7 @@ class AudioService {
     }
 
     await initialize();
-    final assets = _assetSet ?? {};
+    final assets = _assetSet; // pode ser null
     final cardNumber = index + 1;
 
     // Diferentes formatos de nome de arquivo que podem existir
@@ -59,11 +60,14 @@ class AudioService {
       '$folder/audio_${cardNumber.toString().padLeft(2, '0')}.mp3',
     ];
 
-    for (final candidate in candidates) {
-      if (assets.contains(candidate)) {
-        debugPrint('AudioService: caminho encontrado para índice $index => $candidate');
-        _audioPathCache[cacheKey] = candidate;
-        return candidate;
+    if (assets != null && assets.isNotEmpty) {
+      for (final candidate in candidates) {
+        if (assets.contains(candidate)) {
+          debugPrint(
+              'AudioService: caminho encontrado para índice $index => $candidate');
+          _audioPathCache[cacheKey] = candidate;
+          return candidate;
+        }
       }
     }
 
@@ -77,18 +81,24 @@ class AudioService {
         '$folder/$cardNumber.$format',
       ];
 
-      for (final candidate in alternativeCandidates) {
-        if (assets.contains(candidate)) {
-          debugPrint('AudioService: caminho alternativo encontrado para índice $index => $candidate');
-          _audioPathCache[cacheKey] = candidate;
-          return candidate;
+      if (assets != null && assets.isNotEmpty) {
+        for (final candidate in alternativeCandidates) {
+          if (assets.contains(candidate)) {
+            debugPrint(
+                'AudioService: caminho alternativo encontrado para índice $index => $candidate');
+            _audioPathCache[cacheKey] = candidate;
+            return candidate;
+          }
         }
       }
     }
 
-    _audioPathCache[cacheKey] = null;
-    debugPrint('AudioService: nenhum arquivo de áudio encontrado para índice $index em $folder');
-    return null;
+    // Fallback: retorna padrão principal mesmo sem validar no manifest
+    final fallback = '$folder/carta_$cardNumber.mp3';
+    debugPrint(
+        'AudioService: usando fallback de caminho para índice $index => $fallback');
+    _audioPathCache[cacheKey] = fallback;
+    return fallback;
   }
 
   Future<bool> playCartaDia(int index) async {
@@ -103,7 +113,8 @@ class AudioService {
     String? audioPath =
         await _resolveAudioPath('assets/audios_cartas_org', index);
     if (audioPath == null) {
-      debugPrint('AudioService: fallback para cartas do dia (org índice $index)');
+      debugPrint(
+          'AudioService: fallback para cartas do dia (org índice $index)');
       audioPath = await _resolveAudioPath('assets/audios_cartas_dia', index);
     }
     return await _playAudio(audioPath);

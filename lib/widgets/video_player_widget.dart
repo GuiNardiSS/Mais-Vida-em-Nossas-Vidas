@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import '../services/route_observer.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
@@ -17,7 +18,8 @@ class VideoPlayerWidget extends StatefulWidget {
   State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
 }
 
-class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
+class _VideoPlayerWidgetState extends State<VideoPlayerWidget>
+    with RouteAware, WidgetsBindingObserver {
   late VideoPlayerController _controller;
   bool _isInitialized = false;
   bool _hasError = false;
@@ -25,6 +27,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeVideo();
   }
 
@@ -60,8 +63,49 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   @override
   void dispose() {
+    appRouteObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  // RouteAware callbacks
+  @override
+  void didPushNext() {
+    // Outro route foi empurrado acima desta: pausar
+    if (_isInitialized && _controller.value.isPlaying) {
+      _controller.pause();
+    }
+  }
+
+  @override
+  void didPopNext() {
+    // Voltou para esta rota: opcionalmente retomar
+    if (_isInitialized && !_controller.value.isPlaying) {
+      _controller.play();
+    }
+  }
+
+  // App lifecycle: pausar ao ir para background
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_isInitialized) return;
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      if (_controller.value.isPlaying) {
+        _controller.pause();
+      }
+    }
   }
 
   @override

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../widgets/audio_control_widget.dart';
 import '../services/audio_service.dart';
+import '../widgets/themed_logo.dart';
 
 class CartasDoDiaPage extends StatefulWidget {
   const CartasDoDiaPage({super.key});
@@ -108,6 +109,22 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
         return c;
       }
     }
+
+    // Varre o manifest no folder para encontrar arquivo "Back ... <n>.png"
+    // evitando confundir 1 com 10 (captura número exato do nome)
+    final prefix = '$folder/';
+    final regex = RegExp(r'^Back[^0-9]*\(?\s*(\d{1,2})\s*\)?\.(?:png|PNG)\$');
+    for (final path in assets.where((p) => p.startsWith(prefix))) {
+      final name = path.substring(prefix.length);
+      final m = regex.firstMatch(name);
+      if (m != null) {
+        final numStr = m.group(1);
+        if (numStr != null && int.tryParse(numStr) == n) {
+          cache[index] = path;
+          return path;
+        }
+      }
+    }
     cache[index] = null;
     return null;
   }
@@ -174,6 +191,9 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                 cardIndex: index,
                 isOrganizacao: false,
                 cardTitle: cartas[index],
+                onClose: () {
+                  AudioService().stopAudio();
+                },
               ),
             ),
             // Botão de fechar no canto superior direito
@@ -282,6 +302,9 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                 cardIndex: index,
                 isOrganizacao: true,
                 cardTitle: cartasOrganizacao[index],
+                onClose: () {
+                  AudioService().stopAudio();
+                },
               ),
             ),
             // Botão de fechar no canto superior direito
@@ -340,6 +363,9 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
           preferredSize: const Size.fromHeight(70),
           child: TabBar(
             controller: _tabController,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
             labelStyle:
                 const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             unselectedLabelStyle: const TextStyle(fontSize: 10),
@@ -347,11 +373,11 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
             tabs: const [
               Tab(
                 icon: Icon(Icons.auto_awesome, size: 20),
-                text: 'Cartas do Dia',
+                text: 'cartas do dia',
               ),
               Tab(
                 icon: Icon(Icons.business_center, size: 20),
-                text: 'Para Organizações',
+                text: 'cartas para sua organização',
               ),
             ],
           ),
@@ -387,10 +413,8 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
           const SizedBox(height: 24),
           LayoutBuilder(
             builder: (context, constraints) {
-              // Calcula quantas colunas cabem na tela com botões maiores e mais legíveis
               final int crossAxisCount =
                   (constraints.maxWidth / 110).floor().clamp(3, 6);
-
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -398,8 +422,7 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio:
-                      0.85, // Proporção mais quadrada para mostrar logo melhor
+                  childAspectRatio: 0.85,
                 ),
                 itemCount: 50,
                 itemBuilder: (context, i) => Tooltip(
@@ -418,34 +441,41 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.zero,
                         minimumSize: const Size(80, 80),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Stack(
                         children: [
-                          Expanded(
-                            flex: 3,
-                            child: Image.asset(
-                              'assets/logo_carta_dia.png',
-                              fit: BoxFit.contain,
-                              width: double.infinity,
-                              height: double.infinity,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.auto_awesome,
-                                      size: 32, color: Colors.white),
+                          Positioned.fill(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: ThemedLogo(
+                                baseName: 'assets/logo_carta_dia',
+                                fit: BoxFit.contain,
+                                alignment: Alignment.center,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Expanded(
-                            flex: 1,
-                            child: FittedBox(
-                              child: Text(
-                                '${i + 1}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                          // Número da carta centralizado na base
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 6,
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${i + 1}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -492,10 +522,8 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
           const SizedBox(height: 24),
           LayoutBuilder(
             builder: (context, constraints) {
-              // Calcula quantas colunas cabem na tela com botões maiores e mais legíveis
               final int crossAxisCount =
                   (constraints.maxWidth / 110).floor().clamp(3, 6);
-
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -503,8 +531,7 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio:
-                      0.85, // Proporção mais quadrada para mostrar logo melhor
+                  childAspectRatio: 0.85,
                 ),
                 itemCount: 50,
                 itemBuilder: (context, i) => Tooltip(
@@ -523,34 +550,41 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage>
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.zero,
                         minimumSize: const Size(80, 80),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Stack(
                         children: [
-                          Expanded(
-                            flex: 3,
-                            child: Image.asset(
-                              'assets/logo_carta_org.png',
-                              fit: BoxFit.contain,
-                              width: double.infinity,
-                              height: double.infinity,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.business_center,
-                                      size: 32, color: Colors.white),
+                          Positioned.fill(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: ThemedLogo(
+                                baseName: 'assets/logo_carta_org',
+                                fit: BoxFit.contain,
+                                alignment: Alignment.center,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Expanded(
-                            flex: 1,
-                            child: FittedBox(
-                              child: Text(
-                                '${i + 1}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                          // Número da carta centralizado na base
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 6,
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${i + 1}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),

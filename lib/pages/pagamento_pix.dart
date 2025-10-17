@@ -100,18 +100,33 @@ class _PagamentoPixPageState extends State<PagamentoPixPage> {
           children: [
             Icon(Icons.check_circle, color: Colors.green, size: 32),
             SizedBox(width: 12),
-            Text('Pagamento confirmado!'),
+            Text(
+              'Pagamento confirmado!',
+              style: TextStyle(
+                color: Color(0xFF0b4c52),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Transação: $transactionId'),
+            Text(
+              'Transação: $transactionId',
+              style: const TextStyle(color: Colors.black87),
+            ),
             const SizedBox(height: 8),
-            const Text('Valor: R\$ 19,90'),
+            const Text(
+              'Valor: R\$ 19,90',
+              style: TextStyle(color: Colors.black87),
+            ),
             const SizedBox(height: 8),
-            const Text('Seu acesso premium foi liberado!'),
+            const Text(
+              'Seu acesso premium foi liberado!',
+              style: TextStyle(color: Colors.black87),
+            ),
           ],
         ),
         actions: [
