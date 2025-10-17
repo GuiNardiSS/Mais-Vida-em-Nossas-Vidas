@@ -93,12 +93,23 @@ class AudioService {
       }
     }
 
-    // Fallback: retorna padrão principal mesmo sem validar no manifest
-    final fallback = '$folder/carta_$cardNumber.mp3';
-    debugPrint(
-        'AudioService: usando fallback de caminho para índice $index => $fallback');
-    _audioPathCache[cacheKey] = fallback;
-    return fallback;
+    // Não encontrou arquivo existente
+    _audioPathCache[cacheKey] = null;
+    return null;
+  }
+
+  // Verifica se há áudio disponível para a carta (sem tocar)
+  Future<bool> hasAudio(
+      {required bool isOrganizacao, required int index}) async {
+    if (isOrganizacao) {
+      final org = await _resolveAudioPath('assets/audios_cartas_org', index);
+      if (org != null) return true;
+      final dia = await _resolveAudioPath('assets/audios_cartas_dia', index);
+      return dia != null;
+    } else {
+      final dia = await _resolveAudioPath('assets/audios_cartas_dia', index);
+      return dia != null;
+    }
   }
 
   Future<bool> playCartaDia(int index) async {
@@ -118,6 +129,15 @@ class AudioService {
       audioPath = await _resolveAudioPath('assets/audios_cartas_dia', index);
     }
     return await _playAudio(audioPath);
+  }
+
+  // Expose resolved paths without playing (useful for diagnostics/validation)
+  Future<String?> resolveAudioPathDia(int index) async {
+    return _resolveAudioPath('assets/audios_cartas_dia', index);
+  }
+
+  Future<String?> resolveAudioPathOrganizacao(int index) async {
+    return _resolveAudioPath('assets/audios_cartas_org', index);
   }
 
   Future<bool> _playAudio(String? audioPath) async {

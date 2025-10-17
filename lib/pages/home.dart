@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'inicio.dart';
 import 'cartas_do_dia.dart';
+import 'cartas_organizacao.dart';
 import 'contato.dart';
 import 'conteudo.dart';
 import 'espiritualidade_dia.dart';
+import 'audio_validator.dart';
 import 'assinaturas.dart';
 import '../services/palette.dart';
 
@@ -17,6 +19,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0; // Inicia na primeira tela (Cartas do Dia)
   final List<Widget> _pages = [
     const CartasDoDiaPage(),
+    const CartasOrganizacaoPage(),
     const ConhecaMaisPage(),
     const ContatoPage(),
     const ConteudoPage(),
@@ -40,35 +43,49 @@ class _HomePageState extends State<HomePage> {
         builderIndex: 0,
       ),
       (
+        title: 'Cartas para sua organização',
+        icon: Icons.business_center,
+        builderIndex: 1,
+      ),
+      (
         title: 'Conheça Mais',
         icon: Icons.info_outline,
-        builderIndex: 1,
+        builderIndex: 2,
       ),
       (
         title: 'Contato',
         icon: Icons.mail_outline,
-        builderIndex: 2,
+        builderIndex: 3,
       ),
       (
         title: 'Conteúdo',
         icon: Icons.article_outlined,
-        builderIndex: 3,
+        builderIndex: 4,
       ),
       (
         title: 'Espiritualidade no dia a dia',
         icon: Icons.self_improvement,
-        builderIndex: 4,
+        builderIndex: 5,
       ),
       (
         title: 'Assinaturas',
         icon: Icons.credit_card,
-        builderIndex: 5,
+        builderIndex: 6,
       ),
     ];
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _selectedIndex < items.length ? items[_selectedIndex].title : 'Menu',
+        title: GestureDetector(
+          onLongPress: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AudioValidatorPage()),
+            );
+          },
+          child: Text(
+            _selectedIndex < items.length
+                ? items[_selectedIndex].title
+                : 'Menu',
+          ),
         ),
         centerTitle: true,
         leading: Builder(
