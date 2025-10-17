@@ -51,7 +51,7 @@ class _PagamentoPixPageState extends State<PagamentoPixPage> {
 
   String _gerarCodigoPixBRCode() {
     // Formato simplificado do BR Code PIX
-    final valor = '19.90';
+    final valor = '9.99';
     final cidade = 'SAO PAULO';
     final nomeRecebedor = 'MAIS VIDA EM NOSSAS VIDAS';
 
@@ -119,7 +119,7 @@ class _PagamentoPixPageState extends State<PagamentoPixPage> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Valor: R\$ 19,90',
+              'Valor: R\$ 9,99',
               style: TextStyle(color: Colors.black87),
             ),
             const SizedBox(height: 8),
@@ -183,7 +183,7 @@ class _PagamentoPixPageState extends State<PagamentoPixPage> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Valor: R\$ 19,90/mês',
+              'Valor: R\$ 9,99/mês',
               style: TextStyle(fontSize: 20, color: Colors.green),
               textAlign: TextAlign.center,
             ),

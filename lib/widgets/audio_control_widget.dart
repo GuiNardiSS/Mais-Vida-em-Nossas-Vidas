@@ -49,17 +49,15 @@ class _AudioControlWidgetState extends State<AudioControlWidget> {
       _isLoading = true;
     });
 
-    bool audioFound;
-    if (widget.isOrganizacao) {
-      audioFound = await _audioService.playCartaOrganizacao(widget.cardIndex);
-    } else {
-      audioFound = await _audioService.playCartaDia(widget.cardIndex);
-    }
+    final available = await _audioService.hasAudio(
+      isOrganizacao: widget.isOrganizacao,
+      index: widget.cardIndex,
+    );
 
     if (mounted) {
       setState(() {
         _isLoading = false;
-        _hasAudio = audioFound;
+        _hasAudio = available;
       });
     }
   }
@@ -70,8 +68,20 @@ class _AudioControlWidgetState extends State<AudioControlWidget> {
     } else if (_playerState == PlayerState.paused) {
       await _audioService.resumeAudio();
     } else {
-      // Se parou, toca novamente
-      _initializeAudio();
+      // Se está parado, inicia a reprodução agora
+      setState(() => _isLoading = true);
+      bool ok;
+      if (widget.isOrganizacao) {
+        ok = await _audioService.playCartaOrganizacao(widget.cardIndex);
+      } else {
+        ok = await _audioService.playCartaDia(widget.cardIndex);
+      }
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasAudio = ok;
+        });
+      }
     }
   }
 

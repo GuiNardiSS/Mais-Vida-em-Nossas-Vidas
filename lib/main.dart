@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'pages/home.dart';
+import 'pages/cartas_intro.dart';
 import 'services/notifications.dart';
 import 'services/palette.dart';
 import 'services/route_observer.dart';
+// Removed unused import of HomePage
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -87,7 +88,7 @@ class MyApp extends StatelessWidget {
           textColor: AppColors.logoGold,
         ),
       ),
-      home: const HomePage(),
+      home: const CartasIntroPage(),
     );
   }
 }

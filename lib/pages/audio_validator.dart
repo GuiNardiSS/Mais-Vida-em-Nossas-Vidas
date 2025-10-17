@@ -47,9 +47,7 @@ class _AudioValidatorPageState extends State<AudioValidatorPage> {
                         fontSize: 16, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 Text(
-                  (dia != null ? 'Dia ✓' : 'Dia –') +
-                      '  |  ' +
-                      (org != null ? 'Org ✓' : 'Org –'),
+                  '${dia != null ? 'Dia ✓' : 'Dia –'}  |  ${org != null ? 'Org ✓' : 'Org –'}',
                   style: TextStyle(
                     color: (dia != null && org != null)
                         ? Colors.green
@@ -61,10 +59,8 @@ class _AudioValidatorPageState extends State<AudioValidatorPage> {
               ],
             ),
             const SizedBox(height: 6),
-            Text('Dia:   ${dia ?? '—'}',
-                style: const TextStyle(fontSize: 12)),
-            Text('Org:   ${org ?? '—'}',
-                style: const TextStyle(fontSize: 12)),
+            Text('Dia:   ${dia ?? '—'}', style: const TextStyle(fontSize: 12)),
+            Text('Org:   ${org ?? '—'}', style: const TextStyle(fontSize: 12)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -87,10 +83,13 @@ class _AudioValidatorPageState extends State<AudioValidatorPage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    // A/B: toca dia depois org
+                    await audio.stopAudio();
+                    // A/B: toca Dia por ~2s e depois Org para comparar a mensagem
                     await audio.playCartaDia(i);
+                    await Future.delayed(const Duration(seconds: 2));
+                    await audio.playCartaOrganizacao(i);
                   },
-                  child: const Text('A/B Dia→Org'),
+                  child: const Text('A/B Dia→Org (2s)'),
                 ),
               ],
             ),
