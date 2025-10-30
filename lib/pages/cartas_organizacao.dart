@@ -228,15 +228,15 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
           LayoutBuilder(
             builder: (context, constraints) {
               final int crossAxisCount =
-                  (constraints.maxWidth / 110).floor().clamp(3, 6);
+                  (constraints.maxWidth / 130).floor().clamp(3, 5);
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.85,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.9,
                 ),
                 itemCount: 50,
                 itemBuilder: (context, i) => Tooltip(
@@ -253,42 +253,44 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
                             : const Color(0xFFa99045),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(80, 80),
+                        padding: const EdgeInsets.all(8),
+                        minimumSize: const Size(100, 100),
                       ),
                       child: Stack(
                         children: [
-                          Positioned.fill(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: ThemedLogo(
-                                baseName: 'assets/logo_carta_org',
-                                fit: BoxFit.contain,
-                                alignment: Alignment.center,
-                              ),
+                          // Logo maior e mais visível
+                          Positioned(
+                            top: 8,
+                            left: 8,
+                            right: 8,
+                            bottom: 40,
+                            child: ThemedLogo(
+                              baseName: 'assets/logo_carta_org',
+                              fit: BoxFit.contain,
+                              alignment: Alignment.center,
                             ),
                           ),
+                          // Número da carta centralizado na base
                           Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 6,
-                            child: Center(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.5),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '${i + 1}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
+                            left: 8,
+                            right: 8,
+                            bottom: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${i + 1}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
                                 ),
                               ),
                             ),

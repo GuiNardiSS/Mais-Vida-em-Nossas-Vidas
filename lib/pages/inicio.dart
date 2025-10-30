@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../widgets/video_popup_player.dart';
+import '../widgets/decorative_icon.dart';
 
 class ConhecaMaisPage extends StatelessWidget {
   const ConhecaMaisPage({super.key});
@@ -7,72 +9,52 @@ class ConhecaMaisPage extends StatelessWidget {
     {
       'titulo': 'Espiritualidade',
       'resumo': 'Descubra o significado da espiritualidade.',
-      'imagem': 'assets/icone1.png',
-      'detalhe':
-          'A espiritualidade é a busca por um sentido maior na vida, conectando-se com valores, propósito e o universo.'
+      'video': 'assets/conteudo/espiritualidade.mp4'
     },
     {
       'titulo': 'Autoconhecimento',
       'resumo': 'Aprofunde-se em si mesmo.',
-      'imagem': 'assets/icone2.png',
-      'detalhe':
-          'O autoconhecimento é fundamental para o crescimento pessoal e espiritual, permitindo compreender emoções e atitudes.'
+      'video': 'assets/conteudo/autoconhecimento.mp4'
     },
     {
       'titulo': 'Gratidão',
       'resumo': 'O poder de agradecer diariamente.',
-      'imagem': 'assets/icone3.png',
-      'detalhe':
-          'A gratidão transforma a percepção da vida, trazendo leveza e bem-estar ao reconhecer o valor das pequenas coisas.'
+      'video': 'assets/conteudo/gratidao.mp4'
     },
     {
       'titulo': 'Fé',
       'resumo': 'A força da crença interior.',
-      'imagem': 'assets/icone4.png',
-      'detalhe':
-          'A fé é a confiança em algo maior, capaz de renovar esperanças e superar desafios.'
+      'video': 'assets/conteudo/fe.mp4'
     },
     {
       'titulo': 'Resiliência',
       'resumo': 'Superando obstáculos com equilíbrio.',
-      'imagem': 'assets/icone5.png',
-      'detalhe':
-          'Resiliência é a capacidade de se adaptar e crescer diante das adversidades, mantendo o equilíbrio emocional.'
+      'video': 'assets/conteudo/resiliencia.mp4'
     },
     {
       'titulo': 'Compaixão',
       'resumo': 'Praticando o cuidado com o próximo.',
-      'imagem': 'assets/icone6.png',
-      'detalhe':
-          'Compaixão é a empatia ativa, promovendo ajuda e compreensão ao outro.'
+      'video': 'assets/conteudo/compaixao.mp4'
     },
     {
       'titulo': 'Propósito',
       'resumo': 'Encontre o seu motivo de viver.',
-      'imagem': 'assets/icone7.png',
-      'detalhe':
-          'Ter propósito é viver com direção e significado, guiando escolhas e ações.'
+      'video': 'assets/conteudo/proposito.mp4'
     },
     {
       'titulo': 'Equilíbrio',
       'resumo': 'Harmonia entre corpo, mente e espírito.',
-      'imagem': 'assets/icone8.png',
-      'detalhe':
-          'O equilíbrio é essencial para o bem-estar integral, unindo saúde física, mental e espiritual.'
+      'video': 'assets/conteudo/equilibrio.mp4'
     },
     {
       'titulo': 'Esperança',
       'resumo': 'Acreditar em dias melhores.',
-      'imagem': 'assets/icone9.png',
-      'detalhe':
-          'A esperança motiva a busca por soluções e mantém o otimismo diante das dificuldades.'
+      'video': 'assets/conteudo/esperanca.mp4'
     },
     {
       'titulo': 'Amor',
       'resumo': 'A energia que transforma tudo.',
-      'imagem': 'assets/icone10.png',
-      'detalhe':
-          'O amor é a base das relações humanas, capaz de curar, unir e transformar vidas.'
+      'video': 'assets/conteudo/amor.mp4'
     },
   ];
 
@@ -95,24 +77,68 @@ class ConhecaMaisPage extends StatelessWidget {
               onTap: () {
                 showDialog(
                   context: context,
-                  builder: (_) => AlertDialog(
-                    title: Text(
-                      info['titulo'] ?? '',
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                    content: Text(
-                      info['detalhe'] ?? '',
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text(
-                          'Fechar',
-                          style: TextStyle(color: Colors.black),
-                        ),
+                  builder: (_) => Dialog(
+                    backgroundColor: Colors.transparent,
+                    child: Container(
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.9,
+                        maxHeight: MediaQuery.of(context).size.height * 0.8,
                       ),
-                    ],
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Cabeçalho com título e botão fechar
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: const BoxDecoration(
+                              color: Colors.black87,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                topRight: Radius.circular(12),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    info['titulo'] ?? '',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Player de vídeo
+                          Expanded(
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(12),
+                                  bottomRight: Radius.circular(12),
+                                ),
+                              ),
+                              child: VideoPopupPlayer(
+                                videoUrl: info['video'] ?? '',
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },
@@ -125,12 +151,8 @@ class ConhecaMaisPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        info['imagem'] ?? '',
-                        height: 48,
-                        width: 48,
-                        errorBuilder: (_, __, ___) =>
-                            const SizedBox(height: 48, width: 48),
+                      const DecorativeIcon(
+                        size: 60,
                       ),
                       const SizedBox(height: 12),
                       Text(
