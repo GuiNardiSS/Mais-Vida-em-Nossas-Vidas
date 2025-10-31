@@ -55,46 +55,49 @@ class CartasIntroPage extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Stack(
-                    children: [
-                      // Logo grande
-                      Positioned.fill(
-                        child: Container(
-                          color: AppColors.accent,
-                          alignment: Alignment.center,
-                          child: SizedBox(
-                            height: 180,
-                            child: ThemedLogo(
-                              baseName: 'assets/logo_carta_dia',
-                              fit: BoxFit.contain,
-                              alignment: Alignment.center,
+                  child: SizedBox(
+                    height: 220,
+                    child: Stack(
+                      children: [
+                        // Logo grande
+                        Positioned.fill(
+                          child: Container(
+                            color: AppColors.accent,
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              height: 180,
+                              child: ThemedLogo(
+                                baseName: 'assets/logo_carta_dia',
+                                fit: BoxFit.contain,
+                                alignment: Alignment.center,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      // CTA
-                      Positioned(
-                        bottom: 16,
-                        left: 16,
-                        right: 16,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Text(
-                            'Toque para entrar nas Cartas do Dia',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                        // CTA
+                        Positioned(
+                          bottom: 16,
+                          left: 16,
+                          right: 16,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              'Toque para entrar nas Cartas do Dia',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

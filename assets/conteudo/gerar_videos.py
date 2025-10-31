@@ -9,9 +9,9 @@ Uso:
 python gerar_videos.py
 """
 
-from gtts import gTTS
-from moviepy.editor import *
-from PIL import Image, ImageDraw, ImageFont
+from gtts import gTTS  # type: ignore
+from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips  # type: ignore
+from PIL import Image, ImageDraw, ImageFont  # type: ignore
 import os
 
 # Textos originais das informações
