@@ -98,148 +98,123 @@ class _AudioControlWidgetState extends State<AudioControlWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.logoPrimary.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Cabeçalho com título da carta
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  widget.cardTitle,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              if (widget.onClose != null)
-                IconButton(
-                  onPressed: () {
-                    _stopAudio();
-                    widget.onClose!();
-                  },
-                  icon: const Icon(Icons.close, color: Colors.white),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
           // Controles de áudio
           if (_isLoading)
             const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(
-                  width: 20,
-                  height: 20,
+                  width: 16,
+                  height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: 8),
                 Text(
-                  'Carregando áudio...',
-                  style: TextStyle(color: Colors.white),
+                  'Carregando...',
+                  style: TextStyle(color: Colors.white, fontSize: 13),
                 ),
               ],
             )
           else if (!_hasAudio)
             const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.volume_off, color: Colors.white70, size: 20),
-                SizedBox(width: 8),
+                Icon(Icons.volume_off, color: Colors.white70, size: 16),
+                SizedBox(width: 6),
                 Text(
-                  'Áudio não disponível para esta carta',
-                  style: TextStyle(color: Colors.white70),
+                  'Áudio não disponível',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             )
           else
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Botão de play/pause
                 Container(
                   decoration: BoxDecoration(
                     color: AppColors.logoGold,
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: IconButton(
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(),
                     onPressed: _togglePlayPause,
                     icon: Icon(
                       _playerState == PlayerState.playing
                           ? Icons.pause
                           : Icons.play_arrow,
                       color: Colors.white,
-                      size: 30,
+                      size: 20,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 10),
 
                 // Botão de stop
                 Container(
                   decoration: BoxDecoration(
                     color: AppColors.logoPrimary.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.white, width: 1),
                   ),
                   child: IconButton(
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(),
                     onPressed: _stopAudio,
                     icon: const Icon(
                       Icons.stop,
                       color: Colors.white,
-                      size: 24,
+                      size: 18,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 10),
 
                 // Indicador de status
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          _playerState == PlayerState.playing
-                              ? Icons.volume_up
-                              : _playerState == PlayerState.paused
-                                  ? Icons.pause_circle_outline
-                                  : Icons.volume_off_outlined,
-                          color: Colors.white70,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _playerState == PlayerState.playing
-                              ? 'Reproduzindo'
-                              : _playerState == PlayerState.paused
-                                  ? 'Pausado'
-                                  : 'Parado',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      _playerState == PlayerState.playing
+                          ? Icons.volume_up
+                          : _playerState == PlayerState.paused
+                              ? Icons.pause_circle_outline
+                              : Icons.volume_off_outlined,
+                      color: Colors.white70,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _playerState == PlayerState.playing
+                          ? 'Tocando'
+                          : _playerState == PlayerState.paused
+                              ? 'Pausado'
+                              : 'Parado',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),

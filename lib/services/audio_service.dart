@@ -1,6 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class AudioService {
@@ -16,6 +17,10 @@ class AudioService {
   // Cache de caminhos de áudio válidos
   final Map<String, String?> _audioPathCache = {};
 
+  // Mapeamento carta -> áudio (null = usar mapeamento 1:1 padrão)
+  Map<int, int>? _audioMappingDia;
+  Map<int, int>? _audioMappingOrg;
+
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -26,12 +31,44 @@ class AudioService {
       _assetSet = manifest.keys.toSet();
       debugPrint(
           'AudioService: Manifest carregado com \\${_assetSet!.length} assets');
+
+      // Carrega mapeamento de áudios
+      await _loadAudioMapping();
+
       // Ajustes iniciais do player
       await _audioPlayer.setVolume(1.0);
       await _audioPlayer.setReleaseMode(ReleaseMode.stop);
       _isInitialized = true;
     } catch (e) {
       debugPrint('Erro ao inicializar AudioService: $e');
+    }
+  }
+
+  Future<void> _loadAudioMapping() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Carrega mapeamento das cartas do dia
+      final String? mappingDiaJson = prefs.getString('audio_mapping_dia');
+      if (mappingDiaJson != null) {
+        final Map<String, dynamic> decoded = json.decode(mappingDiaJson);
+        _audioMappingDia =
+            decoded.map((key, value) => MapEntry(int.parse(key), value as int));
+        debugPrint(
+            'AudioService: Mapeamento dia carregado com ${_audioMappingDia!.length} entradas');
+      }
+
+      // Carrega mapeamento das cartas de organização
+      final String? mappingOrgJson = prefs.getString('audio_mapping_org');
+      if (mappingOrgJson != null) {
+        final Map<String, dynamic> decoded = json.decode(mappingOrgJson);
+        _audioMappingOrg =
+            decoded.map((key, value) => MapEntry(int.parse(key), value as int));
+        debugPrint(
+            'AudioService: Mapeamento org carregado com ${_audioMappingOrg!.length} entradas');
+      }
+    } catch (e) {
+      debugPrint('Erro ao carregar mapeamento de áudios: $e');
     }
   }
 
@@ -113,20 +150,35 @@ class AudioService {
   }
 
   Future<bool> playCartaDia(int index) async {
+    // Aplica mapeamento se existir
+    final int audioIndex = _audioMappingDia?[index] ?? index;
+    if (audioIndex != index) {
+      debugPrint(
+          'AudioService: carta dia $index mapeada para áudio $audioIndex');
+    }
+
     final audioPath =
-        await _resolveAudioPath('assets/audios_cartas_dia', index);
+        await _resolveAudioPath('assets/audios_cartas_dia', audioIndex);
     return await _playAudio(audioPath);
   }
 
   Future<bool> playCartaOrganizacao(int index) async {
+    // Aplica mapeamento se existir
+    final int audioIndex = _audioMappingOrg?[index] ?? index;
+    if (audioIndex != index) {
+      debugPrint(
+          'AudioService: carta org $index mapeada para áudio $audioIndex');
+    }
+
     // Tenta primeiro o áudio específico de organização, e se não existir
     // faz fallback para o mesmo índice das cartas do dia (mesma mensagem)
     String? audioPath =
-        await _resolveAudioPath('assets/audios_cartas_org', index);
+        await _resolveAudioPath('assets/audios_cartas_org', audioIndex);
     if (audioPath == null) {
       debugPrint(
-          'AudioService: fallback para cartas do dia (org índice $index)');
-      audioPath = await _resolveAudioPath('assets/audios_cartas_dia', index);
+          'AudioService: fallback para cartas do dia (org índice $audioIndex)');
+      audioPath =
+          await _resolveAudioPath('assets/audios_cartas_dia', audioIndex);
     }
     return await _playAudio(audioPath);
   }

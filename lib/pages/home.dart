@@ -6,6 +6,7 @@ import 'contato.dart';
 import 'conteudo.dart';
 import 'espiritualidade_dia.dart';
 import 'audio_validator.dart';
+import 'audio_mapper.dart';
 import 'assinaturas.dart';
 import '../services/palette.dart';
 
@@ -104,40 +105,49 @@ class _HomePageState extends State<HomePage> {
                 decoration: const BoxDecoration(
                   color: AppColors.logoPrimary,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                child: GestureDetector(
+                  onLongPress: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => const AudioMapperPage()),
+                    );
+                  },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.menu,
+                              color: AppColors.logoPrimary, size: 40),
+                        ),
                       ),
-                      child: const Center(
-                        child: Icon(Icons.menu,
-                            color: AppColors.logoPrimary, size: 40),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Menu',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Menu',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               ...items.map((it) => Container(

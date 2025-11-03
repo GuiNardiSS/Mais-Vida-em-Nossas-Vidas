@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/palette.dart';
 import '../widgets/themed_logo.dart';
 import 'home.dart';
 
@@ -38,66 +37,50 @@ class CartasIntroPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            // Carta grande clicável
+            // Carta grande clicável (sem fundo colorido)
             Semantics(
               button: true,
               label: 'Entrar nas Cartas do Dia',
-              child: ElevatedButton(
-                onPressed: () => _entrar(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.logoGold,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  minimumSize: const Size(double.infinity, 220),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: SizedBox(
-                    height: 220,
-                    child: Stack(
-                      children: [
-                        // Logo grande
-                        Positioned.fill(
-                          child: Container(
-                            color: AppColors.accent,
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              height: 180,
-                              child: ThemedLogo(
-                                baseName: 'assets/logo_carta_dia',
-                                fit: BoxFit.contain,
-                                alignment: Alignment.center,
-                              ),
+              child: GestureDetector(
+                onTap: () => _entrar(context),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 400,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Logo grande sem fundo
+                      Positioned.fill(
+                        child: ThemedLogo(
+                          baseName: 'assets/logo_carta_dia',
+                          fit: BoxFit.contain,
+                          alignment: Alignment.center,
+                        ),
+                      ),
+                      // CTA
+                      Positioned(
+                        bottom: 40,
+                        left: 24,
+                        right: 24,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text(
+                            'Toque para entrar nas Cartas do Dia',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        // CTA
-                        Positioned(
-                          bottom: 16,
-                          left: 16,
-                          right: 16,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Text(
-                              'Toque para entrar nas Cartas do Dia',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),

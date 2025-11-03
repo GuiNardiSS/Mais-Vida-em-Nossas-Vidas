@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 
 class ConteudoPage extends StatefulWidget {
@@ -32,11 +33,41 @@ class _ConteudoPageState extends State<ConteudoPage> {
     } else {
       conteudos = [
         {
-          'titulo': 'Entrevista',
-          'descricao': 'Transforme sua energia no trabalho.',
-          'youtube': 'https://youtube.com',
-          'instagram': 'https://instagram.com'
-        }
+          'titulo': 'Meditação Guiada',
+          'descricao': 'Aprenda técnicas de meditação para encontrar paz interior e equilíbrio emocional.',
+          'youtube': 'https://youtube.com/@meditacao',
+          'instagram': 'https://instagram.com/meditacao'
+        },
+        {
+          'titulo': 'Desenvolvimento Pessoal',
+          'descricao': 'Dicas práticas para seu crescimento pessoal e profissional.',
+          'youtube': 'https://youtube.com/@desenvolvimento',
+          'instagram': 'https://instagram.com/desenvolvimento'
+        },
+        {
+          'titulo': 'Mindfulness',
+          'descricao': 'Pratique a atenção plena no seu dia a dia e reduza o estresse.',
+          'youtube': 'https://youtube.com/@mindfulness',
+          'instagram': 'https://instagram.com/mindfulness'
+        },
+        {
+          'titulo': 'Yoga e Bem-estar',
+          'descricao': 'Exercícios de yoga para corpo, mente e espírito.',
+          'youtube': 'https://youtube.com/@yoga',
+          'instagram': 'https://instagram.com/yoga'
+        },
+        {
+          'titulo': 'Inspiração Diária',
+          'descricao': 'Mensagens motivacionais para começar seu dia com energia positiva.',
+          'youtube': 'https://youtube.com/@inspiracao',
+          'instagram': 'https://instagram.com/inspiracao'
+        },
+        {
+          'titulo': 'Inteligência Emocional',
+          'descricao': 'Desenvolva suas habilidades emocionais e relacionamentos saudáveis.',
+          'youtube': 'https://youtube.com/@inteligencia',
+          'instagram': 'https://instagram.com/inteligencia'
+        },
       ];
     }
     setState(() {});
@@ -77,6 +108,35 @@ class _ConteudoPageState extends State<ConteudoPage> {
     return 'assets/conteudo/$simple.png';
   }
 
+  Future<void> _abrirLink(String url) async {
+    if (url.isEmpty) return;
+
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Não foi possível abrir o link: $url'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao abrir link: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _showContentDialog(Map<String, String> c) {
     showDialog(
       context: context,
@@ -96,35 +156,47 @@ class _ConteudoPageState extends State<ConteudoPage> {
             if ((c['youtube'] ?? '').isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  children: [
-                    const Icon(Icons.play_circle_outline,
-                        color: Color(0xFFFF0000), size: 16),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        'YouTube: ${c['youtube']}',
-                        style: const TextStyle(color: Colors.black),
+                child: InkWell(
+                  onTap: () => _abrirLink(c['youtube'] ?? ''),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.play_circle_outline,
+                          color: Color(0xFFFF0000), size: 16),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'YouTube: ${c['youtube']}',
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             if ((c['instagram'] ?? '').isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Row(
-                  children: [
-                    const Icon(Icons.camera_alt_outlined,
-                        color: Color(0xFFE4405F), size: 16),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        'Instagram: ${c['instagram']}',
-                        style: const TextStyle(color: Colors.black),
+                child: InkWell(
+                  onTap: () => _abrirLink(c['instagram'] ?? ''),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.camera_alt_outlined,
+                          color: Color(0xFFE4405F), size: 16),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          'Instagram: ${c['instagram']}',
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -295,30 +367,51 @@ class _ConteudoPageState extends State<ConteudoPage> {
                             ),
                             const SizedBox(height: 12),
 
-                            // Links
+                            // Links clicáveis
                             Row(
                               children: [
                                 if ((c['youtube'] ?? '').isNotEmpty)
                                   Container(
                                     margin: const EdgeInsets.only(right: 8),
-                                    child: const Chip(
-                                      avatar: Icon(Icons.play_circle_outline,
-                                          size: 18),
-                                      label: Text('YouTube',
-                                          style: TextStyle(fontSize: 12)),
-                                      backgroundColor: Color(0xFFFF0000),
-                                      labelStyle:
-                                          TextStyle(color: Colors.white),
+                                    child: InkWell(
+                                      onTap: () =>
+                                          _abrirLink(c['youtube'] ?? ''),
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: const Chip(
+                                        avatar: Icon(
+                                          Icons.play_circle_outline,
+                                          size: 18,
+                                          color: Colors.white,
+                                        ),
+                                        label: Text(
+                                          'YouTube',
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                        backgroundColor: Color(0xFFFF0000),
+                                        labelStyle:
+                                            TextStyle(color: Colors.white),
+                                      ),
                                     ),
                                   ),
                                 if ((c['instagram'] ?? '').isNotEmpty)
-                                  const Chip(
-                                    avatar: Icon(Icons.camera_alt_outlined,
-                                        size: 18),
-                                    label: Text('Instagram',
-                                        style: TextStyle(fontSize: 12)),
-                                    backgroundColor: Color(0xFFE4405F),
-                                    labelStyle: TextStyle(color: Colors.white),
+                                  InkWell(
+                                    onTap: () =>
+                                        _abrirLink(c['instagram'] ?? ''),
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: const Chip(
+                                      avatar: Icon(
+                                        Icons.camera_alt_outlined,
+                                        size: 18,
+                                        color: Colors.white,
+                                      ),
+                                      label: Text(
+                                        'Instagram',
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                                      backgroundColor: Color(0xFFE4405F),
+                                      labelStyle:
+                                          TextStyle(color: Colors.white),
+                                    ),
                                   ),
                               ],
                             ),

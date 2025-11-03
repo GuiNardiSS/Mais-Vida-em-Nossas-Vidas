@@ -123,47 +123,49 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
         backgroundColor: Colors.black.withValues(alpha: 0.4),
         child: Stack(
           children: [
-            Center(
-              child: Container(
-                width: double.infinity,
-                height: double.infinity,
-                padding: const EdgeInsets.all(20),
-                child: assetPath != null
-                    ? InteractiveViewer(
-                        child: Image.asset(
-                          assetPath,
-                          fit: BoxFit.contain,
-                          width: double.infinity,
-                          height: double.infinity,
-                        ),
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.image_not_supported,
-                              size: 48, color: Colors.white),
-                          SizedBox(height: 8),
-                          Text(
-                            'Imagem da carta não encontrada.\nVerifique os assets.',
-                            style: TextStyle(color: Colors.white),
-                            textAlign: TextAlign.center,
+            // Conteúdo principal com carta e controles
+            Column(
+              children: [
+                const SizedBox(height: 80), // Espaço para botões do topo
+                // Carta
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: assetPath != null
+                        ? InteractiveViewer(
+                            child: Image.asset(
+                              assetPath,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          )
+                        : const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.image_not_supported,
+                                  size: 48, color: Colors.white),
+                              SizedBox(height: 8),
+                              Text(
+                                'Imagem da carta não encontrada.\nVerifique os assets.',
+                                style: TextStyle(color: Colors.white),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-              ),
-            ),
-            Positioned(
-              bottom: 20,
-              left: 0,
-              right: 0,
-              child: AudioControlWidget(
-                cardIndex: index,
-                isOrganizacao: true,
-                cardTitle: cartasOrganizacao[index],
-                onClose: () {
-                  AudioService().stopAudio();
-                },
-              ),
+                  ),
+                ),
+                // Controle de áudio abaixo da carta
+                AudioControlWidget(
+                  cardIndex: index,
+                  isOrganizacao: true,
+                  cardTitle: cartasOrganizacao[index],
+                  onClose: () {
+                    AudioService().stopAudio();
+                  },
+                ),
+                const SizedBox(height: 20), // Espaço inferior
+              ],
             ),
             Positioned(
               top: 40,
@@ -245,57 +247,76 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
                     button: true,
                     label: 'Carta da organização ${i + 1}',
                     enabled: true,
-                    child: ElevatedButton(
-                      onPressed: () => _selecionarCartaOrg(i),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: cartaOrgSelecionada == i
-                            ? const Color(0xFF0b4c52)
-                            : const Color(0xFFa99045),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
+                    child: GestureDetector(
+                      onTap: () => _selecionarCartaOrg(i),
+                      child: Container(
+                        decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
+                          border: cartaOrgSelecionada == i
+                              ? Border.all(
+                                  color: const Color(0xFF0b4c52),
+                                  width: 3,
+                                )
+                              : null,
                         ),
-                        padding: const EdgeInsets.all(8),
-                        minimumSize: const Size(100, 100),
-                      ),
-                      child: Stack(
-                        children: [
-                          // Logo maior e mais visível
-                          Positioned(
-                            top: 8,
-                            left: 8,
-                            right: 8,
-                            bottom: 40,
-                            child: ThemedLogo(
-                              baseName: 'assets/logo_carta_org',
-                              fit: BoxFit.contain,
-                              alignment: Alignment.center,
-                            ),
-                          ),
-                          // Número da carta centralizado na base
-                          Positioned(
-                            left: 8,
-                            right: 8,
-                            bottom: 8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.7),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                '${i + 1}',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                        child: Stack(
+                          children: [
+                            // Imagem da carta preenchendo todo o espaço
+                            Positioned.fill(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: ThemedLogo(
+                                  baseName: 'assets/logo_carta_org',
+                                  fit: BoxFit.contain,
+                                  alignment: Alignment.center,
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                            // Número da carta sem fundo escuro
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 8,
+                              child: Center(
+                                child: Text(
+                                  '${i + 1}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                        offset: const Offset(0, 1),
+                                        blurRadius: 4,
+                                        color:
+                                            Colors.black.withValues(alpha: 0.8),
+                                      ),
+                                      Shadow(
+                                        offset: const Offset(0, -1),
+                                        blurRadius: 4,
+                                        color:
+                                            Colors.black.withValues(alpha: 0.8),
+                                      ),
+                                      Shadow(
+                                        offset: const Offset(1, 0),
+                                        blurRadius: 4,
+                                        color:
+                                            Colors.black.withValues(alpha: 0.8),
+                                      ),
+                                      Shadow(
+                                        offset: const Offset(-1, 0),
+                                        blurRadius: 4,
+                                        color:
+                                            Colors.black.withValues(alpha: 0.8),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

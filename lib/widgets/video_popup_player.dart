@@ -31,6 +31,8 @@ class _VideoPopupPlayerState extends State<VideoPopupPlayer> {
 
   void _initializeVideo() async {
     try {
+      debugPrint('VideoPopupPlayer: Inicializando vídeo: ${widget.videoUrl}');
+
       // Pode ser asset ou URL da web
       if (widget.videoUrl.startsWith('assets/')) {
         _controller = VideoPlayerController.asset(widget.videoUrl);
@@ -48,8 +50,10 @@ class _VideoPopupPlayerState extends State<VideoPopupPlayer> {
 
         // Não faz autoplay - usuário decide quando tocar
         _controller.setLooping(false);
+        debugPrint('VideoPopupPlayer: Vídeo inicializado com sucesso');
       }
     } catch (e) {
+      debugPrint('VideoPopupPlayer: Erro ao carregar vídeo: $e');
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -95,17 +99,42 @@ class _VideoPopupPlayerState extends State<VideoPopupPlayer> {
           color: Colors.grey[900],
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.red),
-            SizedBox(height: 16),
-            Text(
-              'Erro ao carregar vídeo',
-              style: TextStyle(color: Colors.white),
-              textAlign: TextAlign.center,
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.videocam_off, size: 64, color: Colors.red),
+              const SizedBox(height: 20),
+              const Text(
+                'Vídeo não disponível',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'O vídeo "${widget.videoUrl}" ainda não foi criado.',
+                style: TextStyle(
+                  color: Colors.grey[400],
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Execute o script gerar_videos.py para criar os vídeos.',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       );
     }
