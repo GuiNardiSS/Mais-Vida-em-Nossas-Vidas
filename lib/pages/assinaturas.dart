@@ -54,71 +54,84 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Player de vídeo
-            Container(
-              width: double.infinity,
-              height: 220,
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: _isVideoInitialized && _controller != null
-                    ? Stack(
-                        children: [
-                          Center(
-                            child: AspectRatio(
-                              aspectRatio: _controller!.value.aspectRatio,
-                              child: VideoPlayer(_controller!),
-                            ),
-                          ),
-                          Center(
-                            child: IconButton(
-                              icon: Icon(
-                                _controller!.value.isPlaying
-                                    ? Icons.pause_circle_filled
-                                    : Icons.play_circle_filled,
-                                size: 64,
-                                color: Colors.white.withValues(alpha: 0.9),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final orientation = MediaQuery.of(context).orientation;
+                final screenHeight = MediaQuery.of(context).size.height;
+
+                // Altura responsiva: 25% da tela em portrait, 45% em landscape
+                final videoHeight = orientation == Orientation.portrait
+                    ? screenHeight * 0.25
+                    : screenHeight * 0.45;
+
+                return Container(
+                  width: double.infinity,
+                  height:
+                      videoHeight.clamp(200.0, 400.0), // Min 200px, Max 400px
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: _isVideoInitialized && _controller != null
+                        ? Stack(
+                            children: [
+                              Center(
+                                child: AspectRatio(
+                                  aspectRatio: _controller!.value.aspectRatio,
+                                  child: VideoPlayer(_controller!),
+                                ),
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  if (_controller!.value.isPlaying) {
-                                    _controller!.pause();
-                                  } else {
-                                    _controller!.play();
-                                  }
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      )
-                    : Center(
-                        child: _errorMessage != null
-                            ? Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.videocam_off,
-                                    size: 48,
-                                    color: Colors.white54,
+                              Center(
+                                child: IconButton(
+                                  icon: Icon(
+                                    _controller!.value.isPlaying
+                                        ? Icons.pause_circle_filled
+                                        : Icons.play_circle_filled,
+                                    size: 64,
+                                    color: Colors.white.withValues(alpha: 0.9),
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _errorMessage!,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : const CircularProgressIndicator(
-                                color: Colors.white,
+                                  onPressed: () {
+                                    setState(() {
+                                      if (_controller!.value.isPlaying) {
+                                        _controller!.pause();
+                                      } else {
+                                        _controller!.play();
+                                      }
+                                    });
+                                  },
+                                ),
                               ),
-                      ),
-              ),
+                            ],
+                          )
+                        : Center(
+                            child: _errorMessage != null
+                                ? Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.videocam_off,
+                                        size: 48,
+                                        color: Colors.white54,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        _errorMessage!,
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                          ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 32),
             const Text(

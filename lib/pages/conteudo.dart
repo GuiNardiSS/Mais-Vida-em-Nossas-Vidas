@@ -34,19 +34,22 @@ class _ConteudoPageState extends State<ConteudoPage> {
       conteudos = [
         {
           'titulo': 'Meditação Guiada',
-          'descricao': 'Aprenda técnicas de meditação para encontrar paz interior e equilíbrio emocional.',
+          'descricao':
+              'Aprenda técnicas de meditação para encontrar paz interior e equilíbrio emocional.',
           'youtube': 'https://youtube.com/@meditacao',
           'instagram': 'https://instagram.com/meditacao'
         },
         {
           'titulo': 'Desenvolvimento Pessoal',
-          'descricao': 'Dicas práticas para seu crescimento pessoal e profissional.',
+          'descricao':
+              'Dicas práticas para seu crescimento pessoal e profissional.',
           'youtube': 'https://youtube.com/@desenvolvimento',
           'instagram': 'https://instagram.com/desenvolvimento'
         },
         {
           'titulo': 'Mindfulness',
-          'descricao': 'Pratique a atenção plena no seu dia a dia e reduza o estresse.',
+          'descricao':
+              'Pratique a atenção plena no seu dia a dia e reduza o estresse.',
           'youtube': 'https://youtube.com/@mindfulness',
           'instagram': 'https://instagram.com/mindfulness'
         },
@@ -58,13 +61,15 @@ class _ConteudoPageState extends State<ConteudoPage> {
         },
         {
           'titulo': 'Inspiração Diária',
-          'descricao': 'Mensagens motivacionais para começar seu dia com energia positiva.',
+          'descricao':
+              'Mensagens motivacionais para começar seu dia com energia positiva.',
           'youtube': 'https://youtube.com/@inspiracao',
           'instagram': 'https://instagram.com/inspiracao'
         },
         {
           'titulo': 'Inteligência Emocional',
-          'descricao': 'Desenvolva suas habilidades emocionais e relacionamentos saudáveis.',
+          'descricao':
+              'Desenvolva suas habilidades emocionais e relacionamentos saudáveis.',
           'youtube': 'https://youtube.com/@inteligencia',
           'instagram': 'https://instagram.com/inteligencia'
         },

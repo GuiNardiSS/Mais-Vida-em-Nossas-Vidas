@@ -1,9 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import '../widgets/themed_logo.dart';
 import 'home.dart';
 
-class CartasIntroPage extends StatelessWidget {
+class CartasIntroPage extends StatefulWidget {
   const CartasIntroPage({super.key});
+
+  @override
+  State<CartasIntroPage> createState() => _CartasIntroPageState();
+}
+
+class _CartasIntroPageState extends State<CartasIntroPage> {
+  VideoPlayerController? _controller;
+  bool _isVideoInitialized = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideo();
+  }
+
+  Future<void> _initializeVideo() async {
+    try {
+      _controller = VideoPlayerController.asset(
+        'assets/intro/video_boas_vindas.mp4',
+      );
+      await _controller!.initialize();
+      setState(() {
+        _isVideoInitialized = true;
+      });
+      // Inicia o vídeo automaticamente
+      _controller!.play();
+      _controller!.setLooping(true);
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Vídeo não disponível';
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
 
   void _entrar(BuildContext context) {
     Navigator.of(context).pushReplacement(
@@ -35,6 +76,145 @@ class CartasIntroPage extends StatelessWidget {
               'e refletir sobre o tema ao longo do dia.',
               style: TextStyle(fontSize: 16),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+
+            // Vídeo de boas-vindas
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final orientation = MediaQuery.of(context).orientation;
+                final screenHeight = MediaQuery.of(context).size.height;
+
+                // Altura responsiva: 30% da tela em portrait, 50% em landscape
+                final videoHeight = orientation == Orientation.portrait
+                    ? screenHeight * 0.25
+                    : screenHeight * 0.5;
+
+                return Container(
+                  width: double.infinity,
+                  height:
+                      videoHeight.clamp(200.0, 400.0), // Min 200px, Max 400px
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: _isVideoInitialized && _controller != null
+                        ? Stack(
+                            children: [
+                              Center(
+                                child: AspectRatio(
+                                  aspectRatio: _controller!.value.aspectRatio,
+                                  child: VideoPlayer(_controller!),
+                                ),
+                              ),
+                              // Controle play/pause
+                              Positioned.fill(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      if (_controller!.value.isPlaying) {
+                                        _controller!.pause();
+                                      } else {
+                                        _controller!.play();
+                                      }
+                                    });
+                                  },
+                                  child: Container(
+                                    color: Colors.transparent,
+                                    child: Center(
+                                      child: AnimatedOpacity(
+                                        opacity: _controller!.value.isPlaying
+                                            ? 0.0
+                                            : 1.0,
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black
+                                                .withValues(alpha: 0.6),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.play_arrow,
+                                            size: 48,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Indicador de som
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _controller!.setVolume(
+                                        _controller!.value.volume > 0
+                                            ? 0.0
+                                            : 1.0,
+                                      );
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.6),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      _controller!.value.volume > 0
+                                          ? Icons.volume_up
+                                          : Icons.volume_off,
+                                      size: 24,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Center(
+                            child: _errorMessage != null
+                                ? Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.videocam_off,
+                                        size: 48,
+                                        color: Colors.white54,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        _errorMessage!,
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                          ),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 32),
             // Carta grande clicável (sem fundo colorido)

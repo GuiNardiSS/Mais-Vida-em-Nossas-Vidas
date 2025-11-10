@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/video_popup_player.dart';
-import '../widgets/decorative_icon.dart';
 
 class ConhecaMaisPage extends StatelessWidget {
   const ConhecaMaisPage({super.key});
@@ -147,9 +146,16 @@ class ConhecaMaisPage extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Imagem/Ícone ocupando 100% do espaço
-                    const DecorativeIcon(
-                      size: 120,
+                    // Logo ocupando 100% do espaço
+                    Container(
+                      color: const Color(0xFFF5F3E8), // Cor bege/creme de fundo
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Image.asset(
+                          'assets/logo_conheca_mais.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     ),
                     // Gradiente na parte inferior para melhor legibilidade
                     Positioned(
