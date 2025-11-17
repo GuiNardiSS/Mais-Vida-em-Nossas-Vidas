@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import '../widgets/video_popup_player.dart';
 
 // Tipos de conteúdo
 enum ContentType {
-  link, // Links externos (YouTube, Instagram)
   video, // Vídeo interno do app
   text, // Texto longo (popup)
 }
@@ -32,48 +30,42 @@ class _ConteudoPageState extends State<ConteudoPage> {
   }
 
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString('conteudos');
-    if (raw != null) {
-      final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
-      conteudos = list;
-    } else {
-      // Conteúdos padrão com tipos mistos
-      conteudos = [
-        // VÍDEOS INTERNOS (3 vídeos)
-        {
-          'titulo': 'Vídeo 1: Introdução à Espiritualidade',
-          'descricao':
-              'Assista este vídeo introdutório sobre práticas espirituais e conexão com o divino.',
-          'tipo': 'video',
-          'videoPath': 'assets/conteudo/video1.mp4',
-          'imagePath': 'assets/conteudo/video1_thumb.png',
-        },
-        {
-          'titulo': 'Vídeo 2: Meditação Guiada',
-          'descricao':
-              'Uma sessão completa de meditação guiada para acalmar a mente e encontrar paz interior.',
-          'tipo': 'video',
-          'videoPath': 'assets/conteudo/video2.mp4',
-          'imagePath': 'assets/conteudo/video2_thumb.png',
-        },
-        {
-          'titulo': 'Vídeo 3: Gratidão Diária',
-          'descricao':
-              'Aprenda a praticar gratidão todos os dias e transforme sua vida.',
-          'tipo': 'video',
-          'videoPath': 'assets/conteudo/video3.mp4',
-          'imagePath': 'assets/conteudo/video3_thumb.png',
-        },
+    // Usando dados padrão (sem cache do SharedPreferences)
+    // Para forçar o uso dos novos conteúdos internos
+    conteudos = [
+      // VÍDEOS INTERNOS (3 vídeos)
+      {
+        'titulo': 'Introdução à Espiritualidade',
+        'descricao':
+            'Assista este vídeo introdutório sobre práticas espirituais e conexão com o divino.',
+        'tipo': 'video',
+        'videoPath': 'assets/conteudo/video1.mp4',
+        'imagePath': 'assets/conteudo/video1_thumb.png',
+      },
+      {
+        'titulo': 'Meditação Guiada',
+        'descricao':
+            'Uma sessão completa de meditação guiada para acalmar a mente e encontrar paz interior.',
+        'tipo': 'video',
+        'videoPath': 'assets/conteudo/video2.mp4',
+        'imagePath': 'assets/conteudo/video2_thumb.png',
+      },
+      {
+        'titulo': 'Gratidão Diária',
+        'descricao':
+            'Aprenda a praticar gratidão todos os dias e transforme sua vida.',
+        'tipo': 'video',
+        'videoPath': 'assets/conteudo/video3.mp4',
+        'imagePath': 'assets/conteudo/video3_thumb.png',
+      },
 
-        // TEXTOS INTERNOS
-        {
-          'titulo': 'A Menina que Falava com o Jardim',
-          'descricao':
-              'Uma história encantadora sobre conexão com a natureza e o divino.',
-          'tipo': 'text',
-          'textoCompleto': '''
-📖 A Criança que Falava com o Jardim
+      // TEXTOS/LIVROS INTERNOS
+      {
+        'titulo': 'A Menina que Falava com o Jardim',
+        'descricao':
+            'Uma história encantadora sobre conexão com a natureza e o divino.',
+        'tipo': 'text',
+        'textoCompleto': '''📖 A Criança que Falava com o Jardim
 Por Helô Coelho
 
 RESUMO DO LIVRO:
@@ -82,70 +74,10 @@ Em um mundo que muitas vezes silencia o que não compreende, Luiza percebeu já 
 
 Em "A Criança que falava com o Jardim", Helô Coelho nos convida a mergulhar na jornada de Luiza, uma alma que desde cedo percebeu a profunda conexão entre o visível e o invisível. Acompanhe seus desafios, suas descobertas sobre a mediunidade e a importância vital da espiritualidade para o desenvolvimento pessoal – um tema que a autora, com sua experiência em levar a consciência espiritual às organizações, aborda com rara profundidade.
 
-Esta não é apenas a história de uma menina, mas um espelho para todos os corações inquietos e sensíveis que buscam validar suas próprias percepções. É um convite para desvendar a magia que reside na escuta atenta, na aceitação do dom inato e na compreensão de que somos parte de algo muito maior. Prepare-se para uma leitura que irá despertar sua própria centelha interior e reacender a crença na sabedoria que a natureza e o espírito têm a nos oferecer, guiando-o para um reencontro com o seu próprio mundo.
-''',
-          'imagePath': 'assets/conteudo/capa_livro_menina_jardim.png',
-        },
-
-        {
-          'titulo': 'O Poder da Gratidão',
-          'descricao':
-              'Descubra como a gratidão pode transformar sua vida e suas relações.',
-          'tipo': 'text',
-          'textoCompleto': '''
-A gratidão é uma das práticas mais poderosas para transformar nossa vida. Quando cultivamos um coração grato, mudamos nossa perspectiva e começamos a enxergar as bênçãos que nos cercam.
-
-🙏 Benefícios da Gratidão:
-
-• Melhora o bem-estar emocional
-• Fortalece relacionamentos
-• Reduz estresse e ansiedade
-• Aumenta a felicidade
-• Promove resiliência
-
-💫 Como Praticar:
-
-1. Mantenha um diário de gratidão
-2. Agradeça 3 coisas todo dia
-3. Expresse gratidão às pessoas
-4. Reconheça as pequenas bênçãos
-5. Medite sobre suas conquistas
-
-A gratidão não é apenas um sentimento, é uma escolha consciente que fazemos todos os dias. Comece hoje mesmo!
-''',
-          'imagePath': 'assets/conteudo/gratidao.png',
-        },
-
-        // LINKS EXTERNOS (mantidos)
-        {
-          'titulo': 'Meditação Guiada',
-          'descricao':
-              'Aprenda técnicas de meditação para encontrar paz interior e equilíbrio emocional.',
-          'tipo': 'link',
-          'youtube': 'https://youtube.com/@meditacao',
-          'instagram': 'https://instagram.com/meditacao',
-          'imagePath': null,
-        },
-        {
-          'titulo': 'Desenvolvimento Pessoal',
-          'descricao':
-              'Dicas práticas para seu crescimento pessoal e profissional.',
-          'tipo': 'link',
-          'youtube': 'https://youtube.com/@desenvolvimento',
-          'instagram': 'https://instagram.com/desenvolvimento',
-          'imagePath': null,
-        },
-        {
-          'titulo': 'Mindfulness',
-          'descricao':
-              'Pratique a atenção plena no seu dia a dia e reduza o estresse.',
-          'tipo': 'link',
-          'youtube': 'https://youtube.com/@mindfulness',
-          'instagram': 'https://instagram.com/mindfulness',
-          'imagePath': null,
-        },
-      ];
-    }
+Esta não é apenas a história de uma menina, mas um espelho para todos os corações inquietos e sensíveis que buscam validar suas próprias percepções. É um convite para desvendar a magia que reside na escuta atenta, na aceitação do dom inato e na compreensão de que somos parte de algo muito maior. Prepare-se para uma leitura que irá despertar sua própria centelha interior e reacender a crença na sabedoria que a natureza e o espírito têm a nos oferecer, guiando-o para um reencontro com o seu próprio mundo.''',
+        'imagePath': 'assets/conteudo/capa_livro_menina_jardim.png',
+      },
+    ];
     setState(() {});
   }
 
@@ -191,26 +123,26 @@ A gratidão não é apenas um sentimento, é uma escolha consciente que fazemos 
   }
 
   IconData _getContentIcon(Map<String, dynamic> c) {
-    final tipo = c['tipo'] ?? 'link';
+    final tipo = c['tipo'] ?? 'video';
     switch (tipo) {
       case 'video':
         return Icons.play_circle_filled;
       case 'text':
         return Icons.article;
       default:
-        return Icons.link;
+        return Icons.play_circle_filled;
     }
   }
 
   Color _getContentColor(Map<String, dynamic> c) {
-    final tipo = c['tipo'] ?? 'link';
+    final tipo = c['tipo'] ?? 'video';
     switch (tipo) {
       case 'video':
         return const Color(0xFFFF0000); // Vermelho para vídeo
       case 'text':
         return const Color(0xFF0b4c52); // Azul escuro para texto
       default:
-        return const Color(0xFF0b4c52); // Azul escuro para links
+        return const Color(0xFF0b4c52);
     }
   }
 
@@ -227,11 +159,7 @@ A gratidão não é apenas um sentimento, é uma escolha consciente que fazemos 
           ),
           const SizedBox(height: 12),
           Text(
-            tipo == 'video'
-                ? 'Vídeo\nDisponível'
-                : tipo == 'text'
-                    ? 'Artigo\nDisponível'
-                    : 'Links\nExternos',
+            tipo == 'video' ? 'Vídeo\nDisponível' : 'Leitura\nDisponível',
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white70,
@@ -244,37 +172,8 @@ A gratidão não é apenas um sentimento, é uma escolha consciente que fazemos 
     );
   }
 
-  Future<void> _abrirLink(String url) async {
-    if (url.isEmpty) return;
-
-    try {
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Não foi possível abrir o link: $url'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao abrir link: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
   void _showContentDialog(Map<String, dynamic> c) {
-    final tipo = c['tipo'] ?? 'link';
+    final tipo = c['tipo'] ?? 'video';
 
     // Se for vídeo, abrir player de vídeo
     if (tipo == 'video') {
@@ -287,82 +186,6 @@ A gratidão não é apenas um sentimento, é uma escolha consciente que fazemos 
       _showTextPopup(c);
       return;
     }
-
-    // Se for link, mostrar dialog com links externos
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(
-          c['titulo'] ?? '',
-          style: const TextStyle(color: Colors.black),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              c['descricao'] ?? '',
-              style: const TextStyle(color: Colors.black),
-            ),
-            if ((c['youtube']?.toString() ?? '').isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: InkWell(
-                  onTap: () => _abrirLink(c['youtube']?.toString() ?? ''),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.play_circle_outline,
-                          color: Color(0xFFFF0000), size: 16),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          'YouTube: ${c['youtube']}',
-                          style: const TextStyle(
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            if ((c['instagram']?.toString() ?? '').isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: InkWell(
-                  onTap: () => _abrirLink(c['instagram']?.toString() ?? ''),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.camera_alt_outlined,
-                          color: Color(0xFFE4405F), size: 16),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          'Instagram: ${c['instagram']}',
-                          style: const TextStyle(
-                            color: Colors.blue,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Fechar',
-              style: TextStyle(color: Colors.black),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   // Mostra player de vídeo em tela cheia
@@ -604,7 +427,7 @@ A gratidão não é apenas um sentimento, é uma escolha consciente que fazemos 
         child: Column(
           children: conteudos.map((c) {
             final imagePath = _getContentImagePath(c);
-            final tipo = c['tipo'] ?? 'link';
+            final tipo = c['tipo'] ?? 'video';
             final contentIcon = _getContentIcon(c);
             final contentColor = _getContentColor(c);
 
@@ -674,11 +497,7 @@ A gratidão não é apenas um sentimento, é uma escolha consciente que fazemos 
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    tipo == 'video'
-                                        ? 'Vídeo'
-                                        : tipo == 'text'
-                                            ? 'Artigo'
-                                            : 'Links',
+                                    tipo == 'video' ? 'Vídeo' : 'Leitura',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
@@ -714,56 +533,6 @@ A gratidão não é apenas um sentimento, é uma escolha consciente que fazemos 
                                 color: Colors.black87,
                                 height: 1.4,
                               ),
-                            ),
-                            const SizedBox(height: 12),
-
-                            // Links clicáveis
-                            Row(
-                              children: [
-                                if ((c['youtube'] ?? '').isNotEmpty)
-                                  Container(
-                                    margin: const EdgeInsets.only(right: 8),
-                                    child: InkWell(
-                                      onTap: () =>
-                                          _abrirLink(c['youtube'] ?? ''),
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: const Chip(
-                                        avatar: Icon(
-                                          Icons.play_circle_outline,
-                                          color: Colors.red,
-                                          size: 20,
-                                        ),
-                                        label: Text(
-                                          'YouTube',
-                                          style: TextStyle(fontSize: 12),
-                                        ),
-                                        backgroundColor: Color(0xFFFFE5E5),
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                      ),
-                                    ),
-                                  ),
-                                if ((c['instagram'] ?? '').isNotEmpty)
-                                  InkWell(
-                                    onTap: () =>
-                                        _abrirLink(c['instagram'] ?? ''),
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: const Chip(
-                                      avatar: Icon(
-                                        Icons.camera_alt_outlined,
-                                        color: Color(0xFFE4405F),
-                                        size: 20,
-                                      ),
-                                      label: Text(
-                                        'Instagram',
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                      backgroundColor: Color(0xFFFFE5EC),
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
-                                    ),
-                                  ),
-                              ],
                             ),
                           ],
                         ),
