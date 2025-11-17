@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import '../services/subscription_service.dart';
+import '../widgets/pix_payment_dialog.dart';
+import '../widgets/card_payment_dialog.dart';
 
 class AssinaturasPage extends StatefulWidget {
   const AssinaturasPage({super.key});
@@ -12,11 +15,15 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
   VideoPlayerController? _controller;
   bool _isVideoInitialized = false;
   String? _errorMessage;
+  bool _isPremium = false;
+  Map<String, dynamic>? _subscriptionInfo;
+  bool _isLoadingSubscription = true;
 
   @override
   void initState() {
     super.initState();
     _initializeVideo();
+    _loadSubscriptionStatus();
   }
 
   Future<void> _initializeVideo() async {
@@ -33,6 +40,51 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
         _errorMessage = 'Vídeo não disponível';
       });
     }
+  }
+
+  Future<void> _loadSubscriptionStatus() async {
+    setState(() => _isLoadingSubscription = true);
+
+    try {
+      final isPremium = await SubscriptionService.isPremium();
+      final info = await SubscriptionService.getSubscriptionInfo();
+
+      setState(() {
+        _isPremium = isPremium;
+        _subscriptionInfo = info;
+        _isLoadingSubscription = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingSubscription = false;
+      });
+    }
+  }
+
+  void _openPixPayment() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PixPaymentDialog(
+        amount: 4.99,
+        onSuccess: () {
+          _loadSubscriptionStatus();
+        },
+      ),
+    );
+  }
+
+  void _openCardPayment() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => CardPaymentDialog(
+        amount: 4.99,
+        onSuccess: () {
+          _loadSubscriptionStatus();
+        },
+      ),
+    );
   }
 
   @override
@@ -136,11 +188,60 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
               },
             ),
             const SizedBox(height: 32),
-            const Text(
-              'Tenha acesso a conteúdos exclusivos, cartas especiais e benefícios únicos.',
-              style: TextStyle(fontSize: 16, height: 1.5),
-              textAlign: TextAlign.center,
-            ),
+
+            // Status da Assinatura
+            if (_isLoadingSubscription)
+              const Center(child: CircularProgressIndicator())
+            else if (_isPremium && _subscriptionInfo != null)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green.shade200),
+                ),
+                child: Column(
+                  children: [
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green, size: 28),
+                        SizedBox(width: 12),
+                        Text(
+                          'Assinatura Ativa',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '${_subscriptionInfo!['daysRemaining']} dias restantes',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Válida até ${_formatDate(_subscriptionInfo!['expiryDate'])}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              const Text(
+                'Tenha acesso a conteúdos exclusivos, cartas especiais e benefícios únicos.',
+                style: TextStyle(fontSize: 16, height: 1.5),
+                textAlign: TextAlign.center,
+              ),
             const SizedBox(height: 40),
 
             // Card de Plano Mensal
@@ -166,52 +267,67 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Ação para pagamento por cartão
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Pagamento por cartão em breve!'),
+
+            // Mostra botões de pagamento apenas se não tiver assinatura ativa
+            if (!_isPremium)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _openCardPayment,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
                     ),
+                    icon: const Icon(Icons.credit_card),
+                    label: const Text('Cartão'),
                   ),
-                  icon: const Icon(Icons.credit_card),
-                  label: const Text('Cartão'),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Ação para pagamento por Pix
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Pagamento por Pix em breve!'),
+                  const SizedBox(width: 16),
+                  ElevatedButton.icon(
+                    onPressed: _openPixPayment,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
                     ),
+                    icon: const Icon(Icons.pix),
+                    label: const Text('Pix'),
                   ),
-                  icon: const Icon(Icons.pix),
-                  label: const Text('Pix'),
+                ],
+              )
+            else
+              // Botão para renovar assinatura
+              Center(
+                child: TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _isPremium = false;
+                    });
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Renovar Assinatura'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFFa99045),
+                  ),
                 ),
-              ],
-            ),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return '';
+    try {
+      final date = DateTime.parse(dateStr);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (e) {
+      return '';
+    }
   }
 
   Widget _buildPlanCard({

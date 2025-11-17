@@ -452,10 +452,16 @@ O amor, em sua expressão plena – amor-próprio, amor ao próximo e amor a Deu
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Logo preenchendo completamente o espaço (sem padding)
-                    Image.asset(
-                      'assets/logo_conheca_mais.png',
-                      fit: BoxFit.cover,
+                    // Logo com fundo branco para melhor visualização
+                    Container(
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.asset(
+                          'assets/logo_conheca_mais.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     ),
                     // Gradiente na parte inferior para melhor legibilidade
                     Positioned(

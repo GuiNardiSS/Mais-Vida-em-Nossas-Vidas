@@ -17,6 +17,7 @@ import os
 def extrair_capa_pdf(pdf_path, output_path):
     """
     Extrai a primeira página de um PDF e salva como imagem PNG
+    Redimensiona para um tamanho adequado para thumbnail
     
     Args:
         pdf_path: Caminho do arquivo PDF
@@ -35,17 +36,31 @@ def extrair_capa_pdf(pdf_path, output_path):
         # Pega a primeira página
         first_page = pdf_document[0]
         
-        # Converte para imagem em alta resolução (300 DPI)
-        zoom = 3  # Fator de zoom para melhor qualidade
+        # Converte para imagem em alta resolução (200 DPI - boa qualidade)
+        zoom = 2  # Fator de zoom para melhor qualidade
         mat = fitz.Matrix(zoom, zoom)
         pix = first_page.get_pixmap(matrix=mat)
         
+        # Converte para PIL Image para poder redimensionar
+        img_data = pix.tobytes("png")
+        from io import BytesIO
+        img = Image.open(BytesIO(img_data))
+        
+        # Redimensiona mantendo proporção
+        # Alvo: largura ideal para card de 180px de altura (similar aos vídeos)
+        target_height = 720  # Altura adequada para boa visualização
+        aspect_ratio = img.width / img.height
+        target_width = int(target_height * aspect_ratio)
+        
+        img_resized = img.resize((target_width, target_height), Image.Resampling.LANCZOS)
+        
         # Salva como PNG
-        pix.save(output_path)
+        img_resized.save(output_path, 'PNG', optimize=True, quality=95)
         
         pdf_document.close()
         
-        print(f"✅ Capa extraída com sucesso: {output_path}")
+        print(f"✅ Capa extraída e redimensionada: {output_path}")
+        print(f"   Dimensões: {target_width}x{target_height}px")
         return True
             
     except Exception as e:

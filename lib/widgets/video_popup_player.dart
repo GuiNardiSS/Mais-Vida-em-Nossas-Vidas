@@ -89,6 +89,27 @@ class _VideoPopupPlayerState extends State<VideoPopupPlayer> {
     return "$twoDigitMinutes:$twoDigitSeconds";
   }
 
+  void _openFullScreen(BuildContext context) {
+    // Salva a posição atual
+    final currentPosition = _controller.value.position;
+    final wasPlaying = _controller.value.isPlaying;
+
+    // Pausa o vídeo antes de abrir tela cheia
+    if (wasPlaying) {
+      _controller.pause();
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => _FullScreenVideoPlayer(
+          videoUrl: widget.videoUrl,
+          startPosition: currentPosition,
+          autoPlay: wasPlaying,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
@@ -223,44 +244,77 @@ class _VideoPopupPlayerState extends State<VideoPopupPlayer> {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          // Slider de progresso
-                          ValueListenableBuilder(
-                            valueListenable: _controller,
-                            builder: (context, VideoPlayerValue value, child) {
-                              return Slider(
-                                value: value.position.inMilliseconds.toDouble(),
-                                min: 0.0,
-                                max: value.duration.inMilliseconds.toDouble(),
-                                onChanged: (newValue) {
-                                  _seekTo(
-                                      Duration(milliseconds: newValue.toInt()));
-                                },
-                                activeColor: Colors.white,
-                                inactiveColor:
-                                    Colors.white.withValues(alpha: 0.3),
-                              );
-                            },
-                          ),
+                          // Slider de progresso e botões
+                          Row(
+                            children: [
+                              // Botão play/pause
+                              IconButton(
+                                onPressed: _togglePlayPause,
+                                icon: Icon(
+                                  _controller.value.isPlaying
+                                      ? Icons.pause
+                                      : Icons.play_arrow,
+                                  color: Colors.white,
+                                ),
+                              ),
 
-                          // Tempo atual / duração total
-                          ValueListenableBuilder(
-                            valueListenable: _controller,
-                            builder: (context, VideoPlayerValue value, child) {
-                              return Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
+                              // Tempo atual
+                              ValueListenableBuilder(
+                                valueListenable: _controller,
+                                builder:
+                                    (context, VideoPlayerValue value, child) {
+                                  return Text(
                                     _formatDuration(value.position),
                                     style: const TextStyle(color: Colors.white),
-                                  ),
-                                  Text(
+                                  );
+                                },
+                              ),
+
+                              // Slider de progresso
+                              Expanded(
+                                child: ValueListenableBuilder(
+                                  valueListenable: _controller,
+                                  builder:
+                                      (context, VideoPlayerValue value, child) {
+                                    return Slider(
+                                      value: value.position.inMilliseconds
+                                          .toDouble(),
+                                      min: 0.0,
+                                      max: value.duration.inMilliseconds
+                                          .toDouble(),
+                                      onChanged: (newValue) {
+                                        _seekTo(Duration(
+                                            milliseconds: newValue.toInt()));
+                                      },
+                                      activeColor: Colors.white,
+                                      inactiveColor:
+                                          Colors.white.withValues(alpha: 0.3),
+                                    );
+                                  },
+                                ),
+                              ),
+
+                              // Duração total
+                              ValueListenableBuilder(
+                                valueListenable: _controller,
+                                builder:
+                                    (context, VideoPlayerValue value, child) {
+                                  return Text(
                                     _formatDuration(value.duration),
                                     style: const TextStyle(color: Colors.white),
-                                  ),
-                                ],
-                              );
-                            },
+                                  );
+                                },
+                              ),
+
+                              // Botão tela cheia
+                              IconButton(
+                                onPressed: () => _openFullScreen(context),
+                                icon: const Icon(
+                                  Icons.fullscreen,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -270,6 +324,261 @@ class _VideoPopupPlayerState extends State<VideoPopupPlayer> {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Widget de tela cheia para o vídeo
+class _FullScreenVideoPlayer extends StatefulWidget {
+  final String videoUrl;
+  final Duration startPosition;
+  final bool autoPlay;
+
+  const _FullScreenVideoPlayer({
+    required this.videoUrl,
+    required this.startPosition,
+    this.autoPlay = false,
+  });
+
+  @override
+  State<_FullScreenVideoPlayer> createState() => _FullScreenVideoPlayerState();
+}
+
+class _FullScreenVideoPlayerState extends State<_FullScreenVideoPlayer> {
+  late VideoPlayerController _controller;
+  bool _isInitialized = false;
+  bool _showControls = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideo();
+  }
+
+  void _initializeVideo() async {
+    try {
+      if (widget.videoUrl.startsWith('assets/')) {
+        _controller = VideoPlayerController.asset(widget.videoUrl);
+      } else {
+        _controller =
+            VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
+      }
+
+      await _controller.initialize();
+      await _controller.seekTo(widget.startPosition);
+
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+
+        if (widget.autoPlay) {
+          _controller.play();
+        }
+      }
+    } catch (e) {
+      debugPrint('Erro ao carregar vídeo em tela cheia: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _togglePlayPause() {
+    setState(() {
+      if (_controller.value.isPlaying) {
+        _controller.pause();
+      } else {
+        _controller.play();
+      }
+    });
+  }
+
+  void _seekTo(Duration position) {
+    _controller.seekTo(position);
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$twoDigitMinutes:$twoDigitSeconds";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: !_isInitialized
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              )
+            : GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _showControls = !_showControls;
+                  });
+                },
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Player de vídeo centralizado
+                    Center(
+                      child: AspectRatio(
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
+                      ),
+                    ),
+
+                    // Controles
+                    if (_showControls)
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.7),
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.7),
+                            ],
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            // Botão fechar no topo
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    icon: const Icon(
+                                      Icons.arrow_back,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                ],
+                              ),
+                            ),
+
+                            // Espaço central com botão play/pause
+                            Expanded(
+                              child: Center(
+                                child: GestureDetector(
+                                  onTap: _togglePlayPause,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.7),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      _controller.value.isPlaying
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                      size: 64,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            // Controles inferiores
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  // Botão play/pause
+                                  IconButton(
+                                    onPressed: _togglePlayPause,
+                                    icon: Icon(
+                                      _controller.value.isPlaying
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+
+                                  // Tempo atual
+                                  ValueListenableBuilder(
+                                    valueListenable: _controller,
+                                    builder: (context, VideoPlayerValue value,
+                                        child) {
+                                      return Text(
+                                        _formatDuration(value.position),
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      );
+                                    },
+                                  ),
+
+                                  // Slider
+                                  Expanded(
+                                    child: ValueListenableBuilder(
+                                      valueListenable: _controller,
+                                      builder: (context, VideoPlayerValue value,
+                                          child) {
+                                        return Slider(
+                                          value: value.position.inMilliseconds
+                                              .toDouble(),
+                                          min: 0.0,
+                                          max: value.duration.inMilliseconds
+                                              .toDouble(),
+                                          onChanged: (newValue) {
+                                            _seekTo(Duration(
+                                                milliseconds:
+                                                    newValue.toInt()));
+                                          },
+                                          activeColor: Colors.white,
+                                          inactiveColor: Colors.white
+                                              .withValues(alpha: 0.3),
+                                        );
+                                      },
+                                    ),
+                                  ),
+
+                                  // Duração total
+                                  ValueListenableBuilder(
+                                    valueListenable: _controller,
+                                    builder: (context, VideoPlayerValue value,
+                                        child) {
+                                      return Text(
+                                        _formatDuration(value.duration),
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      );
+                                    },
+                                  ),
+
+                                  // Botão sair de tela cheia
+                                  IconButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    icon: const Icon(
+                                      Icons.fullscreen_exit,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
       ),
     );
   }
