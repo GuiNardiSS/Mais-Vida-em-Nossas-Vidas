@@ -216,13 +216,13 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text(
-            'Cartas para sua organização',
+            'Cartas da Organização',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           const Text(
-            'Escolha uma das cartas abaixo para receber uma mensagem especial para sua organização. Você só pode selecionar uma carta por vez.',
+            'Escolha uma das cartas abaixo para receber uma mensagem de clima organizacional. Você pode escolher uma carta por dia no modo gratuito.',
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),

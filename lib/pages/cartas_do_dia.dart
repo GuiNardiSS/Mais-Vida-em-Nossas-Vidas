@@ -246,7 +246,7 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Escolha uma das cartas abaixo para receber uma mensagem especial para o seu dia. Você só pode selecionar uma carta por vez.',
+            'Escolha uma das cartas abaixo para receber uma mensagem que conecte sua essência com o Divino. Você pode escolher uma carta por dia no modo gratuito.',
             style: TextStyle(fontSize: 16),
             textAlign: TextAlign.center,
           ),

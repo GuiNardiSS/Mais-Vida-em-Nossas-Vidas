@@ -66,8 +66,10 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
 
                 return Container(
                   width: double.infinity,
-                  height:
-                      videoHeight.clamp(200.0, 400.0), // Min 200px, Max 400px
+                  constraints: BoxConstraints(
+                    minHeight: 200,
+                    maxHeight: videoHeight.clamp(200.0, 500.0),
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black,
                     borderRadius: BorderRadius.circular(16),
@@ -75,35 +77,35 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: _isVideoInitialized && _controller != null
-                        ? Stack(
-                            children: [
-                              Center(
-                                child: AspectRatio(
-                                  aspectRatio: _controller!.value.aspectRatio,
-                                  child: VideoPlayer(_controller!),
-                                ),
-                              ),
-                              Center(
-                                child: IconButton(
-                                  icon: Icon(
-                                    _controller!.value.isPlaying
-                                        ? Icons.pause_circle_filled
-                                        : Icons.play_circle_filled,
-                                    size: 64,
-                                    color: Colors.white.withValues(alpha: 0.9),
+                        ? AspectRatio(
+                            aspectRatio: _controller!.value.aspectRatio,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                VideoPlayer(_controller!),
+                                Center(
+                                  child: IconButton(
+                                    icon: Icon(
+                                      _controller!.value.isPlaying
+                                          ? Icons.pause_circle_filled
+                                          : Icons.play_circle_filled,
+                                      size: 64,
+                                      color:
+                                          Colors.white.withValues(alpha: 0.9),
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        if (_controller!.value.isPlaying) {
+                                          _controller!.pause();
+                                        } else {
+                                          _controller!.play();
+                                        }
+                                      });
+                                    },
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (_controller!.value.isPlaying) {
-                                        _controller!.pause();
-                                      } else {
-                                        _controller!.play();
-                                      }
-                                    });
-                                  },
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           )
                         : Center(
                             child: _errorMessage != null
@@ -135,15 +137,6 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
             ),
             const SizedBox(height: 32),
             const Text(
-              'Assinaturas Premium',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0b4c52),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
               'Tenha acesso a conteúdos exclusivos, cartas especiais e benefícios únicos.',
               style: TextStyle(fontSize: 16, height: 1.5),
               textAlign: TextAlign.center,
@@ -154,7 +147,7 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
             _buildPlanCard(
               context: context,
               title: 'Plano Mensal',
-              price: 'R\$ 9,99',
+              price: 'R\$ 4,99',
               period: '/mês',
               features: [
                 'Acesso a todas as cartas do dia',

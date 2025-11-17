@@ -170,8 +170,13 @@ class _VideoPopupPlayerState extends State<VideoPopupPlayer> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Player de vídeo
-            VideoPlayer(_controller),
+            // Player de vídeo com AspectRatio
+            Center(
+              child: AspectRatio(
+                aspectRatio: _controller.value.aspectRatio,
+                child: VideoPlayer(_controller),
+              ),
+            ),
 
             // Controles sobrepostos
             if (_showControls)

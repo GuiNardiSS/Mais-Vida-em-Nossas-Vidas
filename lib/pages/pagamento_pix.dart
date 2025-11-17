@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../services/device_service.dart';
+import '../services/subscription_service.dart';
 
 class PagamentoPixPage extends StatefulWidget {
   const PagamentoPixPage({super.key});
@@ -15,10 +17,17 @@ class _PagamentoPixPageState extends State<PagamentoPixPage> {
   bool loading = true;
   bool pagamentoConfirmado = false;
   String? transactionId;
+  String? deviceId;
 
   @override
   void initState() {
     super.initState();
+    _initializePayment();
+  }
+
+  Future<void> _initializePayment() async {
+    // Obtém device ID
+    deviceId = await DeviceService.getDeviceId();
     _gerarPixLocal();
   }
 
@@ -76,19 +85,47 @@ class _PagamentoPixPageState extends State<PagamentoPixPage> {
     }
   }
 
-  void _simularPagamento() {
+  void _simularPagamento() async {
     setState(() => loading = true);
 
-    // Simula verificação de pagamento
-    Future.delayed(const Duration(seconds: 3), () {
+    try {
+      // Ativa assinatura no backend
+      final success = await SubscriptionService.activateSubscription(
+        transactionId:
+            transactionId ?? 'PIX-${DateTime.now().millisecondsSinceEpoch}',
+        paymentMethod: 'pix',
+        amount: 9.99,
+      );
+
       if (!mounted) return;
+
       setState(() {
         loading = false;
-        pagamentoConfirmado = true;
+        pagamentoConfirmado = success;
       });
 
-      _mostrarConfirmacao();
-    });
+      if (success) {
+        _mostrarConfirmacao();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao confirmar pagamento. Tente novamente.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => loading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _mostrarConfirmacao() {

@@ -3,6 +3,8 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'dart:convert';
+import '../services/device_service.dart';
+import '../services/subscription_service.dart';
 
 class PagamentoCartaoPage extends StatefulWidget {
   const PagamentoCartaoPage({super.key});
@@ -19,6 +21,7 @@ class _PagamentoCartaoPageState extends State<PagamentoCartaoPage> {
 
   bool loading = false;
   String? tipoCartao;
+  String? deviceId;
   // Modo simulado: exibe "Pagamento confirmado!" sem integrar gateway
   final bool _modoSimulado = true;
 
@@ -42,6 +45,12 @@ class _PagamentoCartaoPageState extends State<PagamentoCartaoPage> {
   void initState() {
     super.initState();
     _numeroCartaoController.addListener(_detectarTipoCartao);
+    _initializePayment();
+  }
+
+  Future<void> _initializePayment() async {
+    // Obtém device ID
+    deviceId = await DeviceService.getDeviceId();
   }
 
   @override
@@ -152,9 +161,27 @@ class _PagamentoCartaoPageState extends State<PagamentoCartaoPage> {
     setState(() => loading = true);
     try {
       if (_modoSimulado) {
+        // Simula processamento e ativa assinatura
         await Future.delayed(const Duration(seconds: 1));
+
+        final success = await SubscriptionService.activateSubscription(
+          transactionId: 'CARD-${DateTime.now().millisecondsSinceEpoch}',
+          paymentMethod: 'card',
+          amount: 19.90,
+        );
+
         if (!mounted) return;
-        _ok();
+
+        if (success) {
+          _ok();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erro ao ativar assinatura'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         return;
       }
 
@@ -172,6 +199,14 @@ class _PagamentoCartaoPageState extends State<PagamentoCartaoPage> {
         merchantDisplayName: 'Mais Vida',
       ));
       await Stripe.instance.presentPaymentSheet();
+
+      // Ativa assinatura após pagamento bem-sucedido
+      await SubscriptionService.activateSubscription(
+        transactionId: 'STRIPE-${DateTime.now().millisecondsSinceEpoch}',
+        paymentMethod: 'card',
+        amount: 19.90,
+      );
+
       if (!mounted) return;
       _ok();
     } catch (e) {
