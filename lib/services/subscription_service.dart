@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'device_service.dart';
+import 'app_logger.dart';
 
 /// Status da assinatura
 enum SubscriptionStatus {
@@ -74,6 +74,12 @@ class SubscriptionService {
     required String paymentMethod, // 'pix' ou 'card'
     required double amount,
   }) async {
+    appLogger.info('Iniciando ativação de assinatura', data: {
+      'transactionId': transactionId,
+      'paymentMethod': paymentMethod,
+      'amount': amount,
+    });
+
     try {
       final deviceId = await DeviceService.getDeviceId();
 
@@ -98,20 +104,40 @@ class SubscriptionService {
         await _updateLocalStatus(
             SubscriptionStatus.active, expiryDate, transactionId);
 
+        appLogger.logSubscription('ativada', data: {
+          'transactionId': transactionId,
+          'paymentMethod': paymentMethod,
+          'amount': amount,
+          'expiryDate': expiryDate.toIso8601String(),
+        });
+
         return true;
       }
 
+      appLogger.warning('Falha ao ativar assinatura no backend', data: {
+        'statusCode': response.statusCode,
+        'transactionId': transactionId,
+      });
+
       return false;
-    } catch (e) {
-      // Log de erro (em produção, usar logging service apropriado)
-      // ignore: avoid_print
-      debugPrint('Erro ao ativar assinatura: $e');
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Erro ao ativar assinatura: $e',
+        error: e,
+        stackTrace: stackTrace,
+        data: {
+          'transactionId': transactionId,
+          'paymentMethod': paymentMethod,
+        },
+      );
       return false;
     }
   }
 
   /// Valida assinatura com o backend (sincronização)
   static Future<bool> validateSubscription() async {
+    appLogger.debug('Validando assinatura com backend');
+
     try {
       final deviceId = await DeviceService.getDeviceId();
 
@@ -129,17 +155,35 @@ class SubscriptionService {
         if (data['isActive'] == true) {
           final expiryDate = DateTime.parse(data['expiryDate']);
           await _updateLocalStatus(SubscriptionStatus.active, expiryDate);
+
+          appLogger.logSubscription('validada', data: {
+            'isActive': true,
+            'expiryDate': expiryDate.toIso8601String(),
+          });
+
           return true;
         } else {
           await _updateLocalStatus(SubscriptionStatus.expired, DateTime.now());
+
+          appLogger.logSubscription('expirada', data: {
+            'isActive': false,
+          });
+
           return false;
         }
       }
 
+      appLogger.warning('Erro ao validar assinatura', data: {
+        'statusCode': response.statusCode,
+      });
+
       return false;
-    } catch (e) {
-      // Log de erro (em produção, usar logging service apropriado)
-      debugPrint('Erro ao validar assinatura: $e');
+    } catch (e, stackTrace) {
+      appLogger.error(
+        'Erro ao validar assinatura: $e',
+        error: e,
+        stackTrace: stackTrace,
+      );
       // Em caso de erro de conexão, mantém status local
       return await isPremium();
     }
@@ -215,6 +259,8 @@ class SubscriptionService {
 
   /// Limpa dados de assinatura (útil para testes)
   static Future<void> clearSubscription() async {
+    appLogger.warning('Limpando dados de assinatura');
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_statusKey);
     await prefs.remove(_expiryKey);
@@ -223,6 +269,8 @@ class SubscriptionService {
 
     _cachedStatus = null;
     _cachedExpiry = null;
+
+    appLogger.logSubscription('limpa');
   }
 
   /// Converte string para enum

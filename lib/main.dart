@@ -3,14 +3,35 @@ import 'pages/cartas_intro.dart';
 import 'services/notifications.dart';
 import 'services/palette.dart';
 import 'services/route_observer.dart';
+import 'services/app_logger.dart';
+import 'services/logging_navigator_observer.dart';
 // Removed unused import of HomePage
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Inicializa sistema de logging
+  await appLogger.initialize();
+  appLogger.info('Aplicativo iniciado', data: {
+    'timestamp': DateTime.now().toIso8601String(),
+  });
+
   // Inicialize apenas as notificações (NÃO agende notificações exatas automaticamente)
   await NotificationsService.init();
   // await NotificationsService.scheduleEvery3Hours(); // Removido para evitar travamento
+
+  // Registra erro global de Flutter
+  FlutterError.onError = (FlutterErrorDetails details) {
+    appLogger.fatal(
+      'Flutter Error: ${details.exception}',
+      error: details.exception,
+      stackTrace: details.stack,
+      data: {
+        'library': details.library ?? 'unknown',
+        'context': details.context?.toString() ?? 'no context',
+      },
+    );
+  };
 
   runApp(const MyApp());
 }
@@ -23,7 +44,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Mais Vida em Nossas Vidas',
-      navigatorObservers: [appRouteObserver],
+      navigatorObservers: [
+        appRouteObserver,
+        LoggingNavigatorObserver(), // Observer de logging automático
+      ],
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme(
