@@ -55,7 +55,7 @@ class _CartasIntroPageState extends State<CartasIntroPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cartas do Dia'),
+        title: const Text('Mensagem do dia'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -70,9 +70,7 @@ class _CartasIntroPageState extends State<CartasIntroPage> {
             ),
             const SizedBox(height: 12),
             const Text(
-              'As Cartas do Dia trazem mensagens especiais para inspirar o seu cotidiano.\n\n'
-              'Escolha uma carta para receber um lembrete significativo, ouvir o áudio correspondente '
-              'e refletir sobre o tema ao longo do dia.',
+              'A carta do Mais Vida em Nossas  Vidas, trazem mensagens especiais para inspirar o seu cotidiano.',
               style: TextStyle(fontSize: 16),
               textAlign: TextAlign.center,
             ),

@@ -473,7 +473,7 @@ O amor, em sua expressão plena – amor-próprio, amor ao próximo e amor a Deu
                       info['titulo'] ?? '',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                        fontSize: 15,
                         color: Color(0xFF0b4c52), // Azul petróleo
                         letterSpacing: 0.5,
                       ),

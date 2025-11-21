@@ -192,7 +192,7 @@ class _ContatoPageState extends State<ContatoPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Helô Coelho, com uma trajetória de três décadas de dedicação e sucesso, fundadora da Helô Coelho Consultoria, Palestrante, Administradora, mentora e consultora. Idealizadora e Apresentadora do Podcast Mais Vida em Nossas Vidas, do Método Interseção do Ser Integral, Das Cartas de Mensagens Mais Vida em Nossas Vidas e das Espiritualidade nas Organizações e impulsioner pequenos negócios artesanal.',
+          'Helô Coelho, com uma trajetória de três décadas de dedicação e sucesso, fundadora da Helô Coelho Consultoria, Terapeuta Empresarial, Palestrante, Administradora, Mentora e consultora. Idealizadora e Apresentadora do Podcast Mais Vida em Nossas Vidas, do Método Interseção do Ser Integral, Das Cartas de Mensagens Mais Vida em Nossas Vidas e das Espiritualidade nas Organizações e impulsioner pequenos negócios artesanal.',
           style: TextStyle(fontSize: 16, height: 1.6),
           textAlign: TextAlign.justify,
         ),
