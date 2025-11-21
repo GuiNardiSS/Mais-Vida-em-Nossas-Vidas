@@ -425,88 +425,89 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: SingleChildScrollView(
+      body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: conteudos.map((c) {
-            final imagePath = _getContentImagePath(c);
-            final tipo = c['tipo'] ?? 'video';
-            final contentIcon = _getContentIcon(c);
-            final contentColor = _getContentColor(c);
-            final temImagem = tipo == 'text' && imagePath != null;
+        itemCount: conteudos.length,
+        itemBuilder: (context, index) {
+          final c = conteudos[index];
+          final imagePath = _getContentImagePath(c);
+          final tipo = c['tipo'] ?? 'video';
+          final contentIcon = _getContentIcon(c);
+          final contentColor = _getContentColor(c);
+          final temImagem = tipo == 'text' && imagePath != null;
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => _showContentDialog(c),
-                  borderRadius: BorderRadius.circular(16),
-                  child: temImagem
-                      ? // Card do livro: apenas a imagem (sem título/descrição)
-                      Image.asset(
-                          imagePath,
-                          width: double.infinity,
-                          fit: BoxFit
-                              .fitWidth, // Preenche a largura, ajusta altura proporcionalmente
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildPlaceholder(contentIcon, tipo),
-                        )
-                      : // Card de vídeo: badge + título + descrição
-                      Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Badge para vídeos
-                              Row(
-                                children: [
-                                  Icon(
-                                    contentIcon,
-                                    size: 20,
-                                    color: contentColor,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    tipo == 'video' ? 'Vídeo' : 'Leitura',
-                                    style: TextStyle(
-                                      color: contentColor,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                c['titulo'] ?? '',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Color(0xFF0b4c52),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                c['descricao'] ?? '',
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.black87,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                ),
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            );
-          }).toList(),
-        ),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: () => _showContentDialog(c),
+                borderRadius: BorderRadius.circular(16),
+                child: temImagem
+                    ? // Card do livro: apenas a imagem (sem título/descrição)
+                    Image.asset(
+                        imagePath,
+                        width: double.infinity,
+                        fit: BoxFit.fitWidth,
+                        // Otimização: Cache da imagem redimensionada para economizar memória
+                        cacheWidth: 800,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildPlaceholder(contentIcon, tipo),
+                      )
+                    : // Card de vídeo: badge + título + descrição
+                    Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Badge para vídeos
+                            Row(
+                              children: [
+                                Icon(
+                                  contentIcon,
+                                  size: 20,
+                                  color: contentColor,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  tipo == 'video' ? 'Vídeo' : 'Leitura',
+                                  style: TextStyle(
+                                    color: contentColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              c['titulo'] ?? '',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                color: Color(0xFF0b4c52),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              c['descricao'] ?? '',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.black87,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

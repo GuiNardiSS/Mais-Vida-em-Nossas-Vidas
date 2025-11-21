@@ -29,6 +29,10 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
   static const _kDiaIndexKey = 'carta_dia_index';
   static const _kDiaDateKey = 'carta_dia_date';
 
+  // Otimização: Regex compilado estaticamente
+  static final _backFileRegex =
+      RegExp(r'^Back[^0-9]*\(?\s*(\d{1,2})\s*\)?\.(?:png|PNG)\$');
+
   @override
   void initState() {
     super.initState();
@@ -95,10 +99,9 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
     // Varre o manifest no folder para encontrar arquivo "Back ... <n>.png"
     // evitando confundir 1 com 10 (captura número exato do nome)
     final prefix = '$folder/';
-    final regex = RegExp(r'^Back[^0-9]*\(?\s*(\d{1,2})\s*\)?\.(?:png|PNG)\$');
     for (final path in assets.where((p) => p.startsWith(prefix))) {
       final name = path.substring(prefix.length);
-      final m = regex.firstMatch(name);
+      final m = _backFileRegex.firstMatch(name);
       if (m != null) {
         final numStr = m.group(1);
         if (numStr != null && int.tryParse(numStr) == n) {
@@ -234,131 +237,146 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
   }
 
   Widget _buildCartasDia() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Text(
-            'Cartas do Dia',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.all(24),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              children: const [
+                Text(
+                  'Cartas do Dia',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Escolha uma das cartas abaixo para receber uma mensagem que conecte sua essência com o Divino. Você pode escolher uma carta por dia no modo gratuito.',
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 24),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'Escolha uma das cartas abaixo para receber uma mensagem que conecte sua essência com o Divino. Você pode escolher uma carta por dia no modo gratuito.',
-            style: TextStyle(fontSize: 16),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          LayoutBuilder(
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          sliver: SliverLayoutBuilder(
             builder: (context, constraints) {
               final int crossAxisCount =
-                  (constraints.maxWidth / 130).floor().clamp(3, 5);
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+                  (constraints.crossAxisExtent / 130).floor().clamp(3, 5);
+              return SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                   childAspectRatio: 0.9,
                 ),
-                itemCount: 50,
-                itemBuilder: (context, i) => Tooltip(
-                  message: 'Carta ${i + 1}',
-                  child: Semantics(
-                    button: true,
-                    label: 'Carta ${i + 1}',
-                    enabled: true,
-                    child: GestureDetector(
-                      onTap: () => _selecionarCarta(i),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: cartaSelecionada == i
-                              ? Border.all(
-                                  color: const Color(0xFF0b4c52),
-                                  width: 3,
-                                )
-                              : null,
-                        ),
-                        child: Stack(
-                          children: [
-                            // Imagem da carta preenchendo todo o espaço
-                            Positioned.fill(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: ThemedLogo(
-                                  baseName: 'assets/logo_carta_dia',
-                                  fit: BoxFit.contain,
-                                  alignment: Alignment.center,
-                                ),
-                              ),
-                            ),
-                            // Número da carta sem fundo escuro
-                            Positioned(
-                              left: 0,
-                              right: 0,
-                              bottom: 8,
-                              child: Center(
-                                child: Text(
-                                  '${i + 1}',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    shadows: [
-                                      Shadow(
-                                        offset: const Offset(0, 1),
-                                        blurRadius: 4,
-                                        color:
-                                            Colors.black.withValues(alpha: 0.8),
-                                      ),
-                                      Shadow(
-                                        offset: const Offset(0, -1),
-                                        blurRadius: 4,
-                                        color:
-                                            Colors.black.withValues(alpha: 0.8),
-                                      ),
-                                      Shadow(
-                                        offset: const Offset(1, 0),
-                                        blurRadius: 4,
-                                        color:
-                                            Colors.black.withValues(alpha: 0.8),
-                                      ),
-                                      Shadow(
-                                        offset: const Offset(-1, 0),
-                                        blurRadius: 4,
-                                        color:
-                                            Colors.black.withValues(alpha: 0.8),
-                                      ),
-                                    ],
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) => Tooltip(
+                    message: 'Carta ${i + 1}',
+                    child: Semantics(
+                      button: true,
+                      label: 'Carta ${i + 1}',
+                      enabled: true,
+                      child: GestureDetector(
+                        onTap: () => _selecionarCarta(i),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: cartaSelecionada == i
+                                ? Border.all(
+                                    color: const Color(0xFF0b4c52),
+                                    width: 3,
+                                  )
+                                : null,
+                          ),
+                          child: Stack(
+                            children: [
+                              // Imagem da carta preenchendo todo o espaço
+                              Positioned.fill(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: const ThemedLogo(
+                                    baseName: 'assets/logo_carta_dia',
+                                    fit: BoxFit.contain,
+                                    alignment: Alignment.center,
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                              // Número da carta sem fundo escuro
+                              Positioned(
+                                left: 0,
+                                right: 0,
+                                bottom: 8,
+                                child: Center(
+                                  child: Text(
+                                    '${i + 1}',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          offset: const Offset(0, 1),
+                                          blurRadius: 4,
+                                          color: Colors.black
+                                              .withValues(alpha: 0.8),
+                                        ),
+                                        Shadow(
+                                          offset: const Offset(0, -1),
+                                          blurRadius: 4,
+                                          color: Colors.black
+                                              .withValues(alpha: 0.8),
+                                        ),
+                                        Shadow(
+                                          offset: const Offset(1, 0),
+                                          blurRadius: 4,
+                                          color: Colors.black
+                                              .withValues(alpha: 0.8),
+                                        ),
+                                        Shadow(
+                                          offset: const Offset(-1, 0),
+                                          blurRadius: 4,
+                                          color: Colors.black
+                                              .withValues(alpha: 0.8),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
+                  childCount: 50,
                 ),
               );
             },
           ),
-          if (cartaSelecionada != null) ...[
-            const SizedBox(height: 16),
-            Text(
-              'Carta escolhida: Carta ${cartaSelecionada! + 1}. Nova seleção disponível amanhã.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        if (cartaSelecionada != null)
+          SliverPadding(
+            padding: const EdgeInsets.all(24),
+            sliver: SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16, bottom: 24),
+                child: Text(
+                  'Carta escolhida: Carta ${cartaSelecionada! + 1}. Nova seleção disponível amanhã.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
             ),
-          ],
-          const SizedBox(height: 24),
-        ],
-      ),
+          ),
+        // Padding extra no final para garantir scroll
+        const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+      ],
     );
   }
 

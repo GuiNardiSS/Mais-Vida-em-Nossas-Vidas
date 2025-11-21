@@ -101,6 +101,8 @@ class EspiritualidadeDiaPage extends StatelessWidget {
                                 child: Image.asset(
                                   imgPath,
                                   fit: boxFit,
+                                  cacheWidth:
+                                      400, // Otimização: Reduz uso de memória
                                   errorBuilder: (ctx, e, st) => const Center(
                                     child: Column(
                                       mainAxisAlignment:

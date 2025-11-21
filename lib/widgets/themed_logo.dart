@@ -65,7 +65,9 @@ class ThemedLogo extends StatelessWidget {
             chosen.path,
             fit: fit,
             alignment: alignment,
-            filterQuality: FilterQuality.high,
+            filterQuality: FilterQuality
+                .medium, // Otimização: High é desnecessário para ícones/logos
+            cacheWidth: 500, // Otimização: Limita memória usada
           );
         }
 
@@ -78,12 +80,16 @@ class ThemedLogo extends StatelessWidget {
     );
   }
 
+  static List<String>? _cachedManifest;
+
   Future<List<String>> _loadAssets() async {
+    if (_cachedManifest != null) return _cachedManifest!;
     // Lê o AssetManifest.json via rootBundle
     try {
       final manifestJson = await rootBundle.loadString('AssetManifest.json');
       final Map<String, dynamic> manifest = json.decode(manifestJson);
-      return manifest.keys.cast<String>().toList(growable: false);
+      _cachedManifest = manifest.keys.cast<String>().toList(growable: false);
+      return _cachedManifest!;
     } catch (_) {
       return const <String>[];
     }
