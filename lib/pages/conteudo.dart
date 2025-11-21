@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/video_popup_player.dart';
+import '../services/usage_restriction_service.dart';
 
 // Tipos de conteúdo
 enum ContentType {
@@ -16,12 +16,7 @@ class ConteudoPage extends StatefulWidget {
 }
 
 class _ConteudoPageState extends State<ConteudoPage> {
-  final tituloCtrl = TextEditingController();
-  final descCtrl = TextEditingController();
-  final ytCtrl = TextEditingController();
-  final igCtrl = TextEditingController();
   List<Map<String, dynamic>> conteudos = [];
-  final bool isAdmin = true; // Troque para false para usuário comum
 
   @override
   void initState() {
@@ -33,38 +28,66 @@ class _ConteudoPageState extends State<ConteudoPage> {
     // Usando dados padrão (sem cache do SharedPreferences)
     // Para forçar o uso dos novos conteúdos internos
     conteudos = [
-      // VÍDEOS INTERNOS (3 vídeos)
+      // VÍDEOS INTERNOS (3 vídeos) - SEM THUMBNAIL
       {
-        'titulo': 'Introdução à Espiritualidade',
+        'titulo': 'Espiritualidade nas organizações',
         'descricao':
-            'Assista este vídeo introdutório sobre práticas espirituais e conexão com o divino.',
+            'Descubra como a espiritualidade pode transformar o ambiente corporativo, trazendo mais propósito, harmonia e resultados positivos para todos.',
         'tipo': 'video',
         'videoPath': 'assets/conteudo/video1.mp4',
-        'imagePath': 'assets/conteudo/video1_thumb.png',
+        'premiumOnly': false, // Definir true para conteúdo exclusivo
       },
       {
-        'titulo': 'Meditação Guiada',
+        'titulo': 'Nunca é tarde para começar',
         'descricao':
-            'Uma sessão completa de meditação guiada para acalmar a mente e encontrar paz interior.',
+            'Inspire-se a dar o primeiro passo em direção aos seus sonhos. Não importa a idade ou o momento, sempre há tempo para iniciar uma nova jornada.',
         'tipo': 'video',
         'videoPath': 'assets/conteudo/video2.mp4',
-        'imagePath': 'assets/conteudo/video2_thumb.png',
+        'premiumOnly': false, // Definir true para conteúdo exclusivo
       },
       {
-        'titulo': 'Gratidão Diária',
+        'titulo': 'Em busca do conhecimento',
         'descricao':
-            'Aprenda a praticar gratidão todos os dias e transforme sua vida.',
+            'A jornada do aprendizado é contínua. Explore a importância de buscar sabedoria e como o conhecimento pode expandir seus horizontes e enriquecer sua vida.',
         'tipo': 'video',
         'videoPath': 'assets/conteudo/video3.mp4',
-        'imagePath': 'assets/conteudo/video3_thumb.png',
+        'premiumOnly': false, // Definir true para conteúdo exclusivo
+      },
+      {
+        'titulo': 'Acolhimento',
+        'descricao':
+            'Aprenda a importância de acolher a si mesmo e ao próximo com compaixão. O acolhimento é o primeiro passo para a cura e para a construção de relacionamentos mais saudáveis e verdadeiros.',
+        'tipo': 'video',
+        'videoPath': 'assets/conteudo/Acolhimento.mp4',
+        'premiumOnly': false,
+      },
+      {
+        'titulo': 'O Novo Líder',
+        'descricao':
+            'Descubra as características da liderança moderna baseada em empatia, propósito e espiritualidade. Entenda como inspirar pessoas e criar ambientes de trabalho mais humanos e produtivos.',
+        'tipo': 'video',
+        'videoPath': 'assets/conteudo/novo_lider.mp4',
+        'premiumOnly': false,
+      },
+      {
+        'titulo': 'O Poder do Perdão',
+        'descricao':
+            'Entenda como o ato de perdoar pode libertar você de pesos do passado. O perdão não é sobre esquecer, mas sobre escolher a paz e permitir que a vida flua novamente.',
+        'tipo': 'video',
+        'videoPath': 'assets/conteudo/Perdão.mp4',
+        'premiumOnly': false,
       },
 
-      // TEXTOS/LIVROS INTERNOS
+      // TEXTOS/LIVROS INTERNOS - COM IMAGEM E LINK EXTERNO
       {
         'titulo': 'A Menina que Falava com o Jardim',
         'descricao':
             'Uma história encantadora sobre conexão com a natureza e o divino.',
         'tipo': 'text',
+        'imagePath': 'assets/conteudo/capa_livro_menina_jardim.png',
+        'externalLink': '', // Adicionar link externo aqui quando disponível
+        'premiumOnly': false, // Definir true para conteúdo exclusivo
+        'emBreve': true,
         'textoCompleto': '''📖 A Criança que Falava com o Jardim
 Por Helô Coelho
 
@@ -75,26 +98,8 @@ Em um mundo que muitas vezes silencia o que não compreende, Luiza percebeu já 
 Em "A Criança que falava com o Jardim", Helô Coelho nos convida a mergulhar na jornada de Luiza, uma alma que desde cedo percebeu a profunda conexão entre o visível e o invisível. Acompanhe seus desafios, suas descobertas sobre a mediunidade e a importância vital da espiritualidade para o desenvolvimento pessoal – um tema que a autora, com sua experiência em levar a consciência espiritual às organizações, aborda com rara profundidade.
 
 Esta não é apenas a história de uma menina, mas um espelho para todos os corações inquietos e sensíveis que buscam validar suas próprias percepções. É um convite para desvendar a magia que reside na escuta atenta, na aceitação do dom inato e na compreensão de que somos parte de algo muito maior. Prepare-se para uma leitura que irá despertar sua própria centelha interior e reacender a crença na sabedoria que a natureza e o espírito têm a nos oferecer, guiando-o para um reencontro com o seu próprio mundo.''',
-        'imagePath': 'assets/conteudo/capa_livro_menina_jardim.png',
       },
     ];
-    setState(() {});
-  }
-
-  Future<void> _add() async {
-    final item = {
-      'titulo': tituloCtrl.text,
-      'descricao': descCtrl.text,
-      'youtube': ytCtrl.text,
-      'instagram': igCtrl.text,
-    };
-    conteudos.insert(0, item);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('conteudos', jsonEncode(conteudos));
-    tituloCtrl.clear();
-    descCtrl.clear();
-    ytCtrl.clear();
-    igCtrl.clear();
     setState(() {});
   }
 
@@ -172,7 +177,32 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
     );
   }
 
-  void _showContentDialog(Map<String, dynamic> c) {
+  Future<void> _showContentDialog(Map<String, dynamic> c) async {
+    // Verifica se é conteúdo "Em Breve"
+    if (c['emBreve'] == true) {
+      showDialog(
+        context: context,
+        builder: (context) => const AlertDialog(
+          title: Text('Aviso', style: TextStyle(color: Colors.black)),
+          content: Text('EM BREVE', style: TextStyle(color: Colors.black)),
+        ),
+      );
+      return;
+    }
+
+    // ===== SISTEMA DE RESTRIÇÕES FREE/PREMIUM =====
+    // Verifica se usuário pode acessar o conteúdo
+    final canAccess = await UsageRestrictionService.canAccessContent(c);
+    if (!canAccess) {
+      if (!mounted) return;
+      await UsageRestrictionService.showPremiumRequiredDialog(
+        context,
+        feature: c['titulo'],
+      );
+      return;
+    }
+    // ==============================================
+
     final tipo = c['tipo'] ?? 'video';
 
     // Se for vídeo, abrir player de vídeo
@@ -181,10 +211,43 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
       return;
     }
 
-    // Se for texto, mostrar popup com texto completo
+    // Se for texto/livro com link externo, abrir o link
     if (tipo == 'text') {
-      _showTextPopup(c);
+      final externalLink = c['externalLink']?.toString() ?? '';
+      if (externalLink.isNotEmpty) {
+        _openExternalLink(externalLink);
+      } else {
+        _showTextPopup(c);
+      }
       return;
+    }
+  }
+
+  // Abre link externo
+  Future<void> _openExternalLink(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Não foi possível abrir o link'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao abrir link: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -361,67 +424,7 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          if (isAdmin)
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline, size: 28),
-              tooltip: 'Adicionar conteúdo',
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                    title: const Text(
-                      'Novo conteúdo',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    content: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          TextField(
-                              controller: tituloCtrl,
-                              decoration:
-                                  const InputDecoration(labelText: 'Título')),
-                          TextField(
-                              controller: descCtrl,
-                              decoration: const InputDecoration(
-                                  labelText: 'Descrição')),
-                          TextField(
-                              controller: ytCtrl,
-                              decoration: const InputDecoration(
-                                  labelText: 'Link YouTube')),
-                          TextField(
-                              controller: igCtrl,
-                              decoration: const InputDecoration(
-                                  labelText: 'Link Instagram')),
-                        ],
-                      ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          _add();
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text(
-                          'Salvar',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text(
-                          'Cancelar',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-        ],
-      ),
+      appBar: AppBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -430,6 +433,7 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
             final tipo = c['tipo'] ?? 'video';
             final contentIcon = _getContentIcon(c);
             final contentColor = _getContentColor(c);
+            final temImagem = tipo == 'text' && imagePath != null;
 
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
@@ -438,107 +442,66 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
+                clipBehavior: Clip.antiAlias,
                 child: InkWell(
                   onTap: () => _showContentDialog(c),
                   borderRadius: BorderRadius.circular(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Área da imagem com ícone de tipo
-                      Stack(
-                        children: [
-                          Container(
-                            height: 180,
-                            decoration: BoxDecoration(
-                              color: contentColor,
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(16),
-                                topRight: Radius.circular(16),
-                              ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(16),
-                                topRight: Radius.circular(16),
-                              ),
-                              child: imagePath != null
-                                  ? Image.asset(
-                                      imagePath,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      errorBuilder: (context, error,
-                                              stackTrace) =>
-                                          _buildPlaceholder(contentIcon, tipo),
-                                    )
-                                  : _buildPlaceholder(contentIcon, tipo),
-                            ),
-                          ),
-
-                          // Badge com tipo de conteúdo
-                          Positioned(
-                            top: 12,
-                            right: 12,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.7),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                  child: temImagem
+                      ? // Card do livro: apenas a imagem (sem título/descrição)
+                      Image.asset(
+                          imagePath,
+                          width: double.infinity,
+                          fit: BoxFit
+                              .fitWidth, // Preenche a largura, ajusta altura proporcionalmente
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildPlaceholder(contentIcon, tipo),
+                        )
+                      : // Card de vídeo: badge + título + descrição
+                      Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Badge para vídeos
+                              Row(
                                 children: [
                                   Icon(
                                     contentIcon,
-                                    size: 16,
-                                    color: Colors.white,
+                                    size: 20,
+                                    color: contentColor,
                                   ),
-                                  const SizedBox(width: 4),
+                                  const SizedBox(width: 8),
                                   Text(
                                     tipo == 'video' ? 'Vídeo' : 'Leitura',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
+                                    style: TextStyle(
+                                      color: contentColor,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
+                              const SizedBox(height: 12),
+                              Text(
+                                c['titulo'] ?? '',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  color: Color(0xFF0b4c52),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                c['descricao'] ?? '',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.black87,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-
-                      // Área do conteúdo
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              c['titulo'] ?? '',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                color: Color(0xFF0b4c52),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              c['descricao'] ?? '',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.black87,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             );

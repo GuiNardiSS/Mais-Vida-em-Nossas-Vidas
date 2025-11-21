@@ -360,12 +360,14 @@ O amor, em sua expressão plena – amor-próprio, amor ao próximo e amor a Deu
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor:
+          const Color(0xFFF5F5F0), // Fundo da página levemente off-white
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 1.0,
+            childAspectRatio: 9 / 11, // Proporção retangular (mobile card)
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
           ),
@@ -390,7 +392,7 @@ O amor, em sua expressão plena – amor-próprio, amor ao próximo e amor a Deu
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: const BoxDecoration(
-                              color: Colors.black87,
+                              color: Color(0xFF0b4c52), // Azul petróleo
                               borderRadius: BorderRadius.only(
                                 topLeft: Radius.circular(12),
                                 topRight: Radius.circular(12),
@@ -447,61 +449,37 @@ O amor, em sua expressão plena – amor-próprio, amor ao próximo e amor a Deu
                   ),
                 );
               },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Logo com fundo branco para melhor visualização
-                    Container(
-                      color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Image.asset(
-                          'assets/logo_conheca_mais.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-                    // Gradiente na parte inferior para melhor legibilidade
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.7),
-                            ],
-                          ),
-                        ),
-                        child: Text(
-                          info['titulo'] ?? '',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(0, 1),
-                                blurRadius: 2,
-                                color: Colors.black,
-                              ),
-                            ],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFDD0), // Fundo creme claro
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
                   ],
+                  image: const DecorationImage(
+                    image: AssetImage('assets/logo_conheca_mais.png'),
+                    fit: BoxFit
+                        .fill, // Garante que a arte preencha todo o card sem cortes
+                  ),
+                ),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      info['titulo'] ?? '',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Color(0xFF0b4c52), // Azul petróleo
+                        letterSpacing: 0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
               ),
             );

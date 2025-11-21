@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/themed_logo.dart';
 import '../widgets/audio_control_widget.dart';
 import '../services/audio_service.dart';
+import '../services/usage_restriction_service.dart';
 
 class CartasOrganizacaoPage extends StatefulWidget {
   const CartasOrganizacaoPage({super.key});
@@ -105,6 +106,19 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
   }
 
   Future<void> _selecionarCartaOrg(int index) async {
+    // ===== SISTEMA DE RESTRIÇÕES FREE/PREMIUM =====
+    // Verifica se usuário pode selecionar carta
+    final canSelect = await UsageRestrictionService.canSelectCartaOrganizacao();
+    if (!canSelect) {
+      if (!mounted) return;
+      await UsageRestrictionService.showDailyLimitReachedDialog(
+        context,
+        isCartaDia: false,
+      );
+      return;
+    }
+    // ==============================================
+
     setState(() {
       cartaOrgSelecionada = index;
     });
@@ -112,6 +126,10 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_kOrgIndexKey, index);
     await prefs.setString(_kOrgDateKey, _todayKey());
+
+    // ===== REGISTRA USO PARA SISTEMA DE RESTRIÇÕES =====
+    await UsageRestrictionService.registerCartaOrganizacaoUsage();
+    // ===================================================
 
     final assetPath = await _resolveCartaAssetCached(
         'assets/cartas_do_dia_org', index, _cacheOrg);

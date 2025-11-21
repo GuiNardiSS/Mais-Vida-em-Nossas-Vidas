@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'device_service.dart';
 import 'app_logger.dart';
+import 'secure_storage_service.dart';
+import '../config/api_config.dart';
 
 /// Status da assinatura
 enum SubscriptionStatus {
@@ -15,10 +16,7 @@ enum SubscriptionStatus {
 /// Service para gerenciar assinatura premium
 /// Sistema funciona SEM login de usuário, usando Device ID
 class SubscriptionService {
-  // URL do backend (ajustar para produção)
-  static const String _baseUrl = 'http://10.0.2.2:3000';
-
-  // Keys para SharedPreferences
+  // Keys para SecureStorage
   static const String _statusKey = 'subscription_status';
   static const String _expiryKey = 'subscription_expiry';
   static const String _transactionIdKey = 'subscription_transaction_id';
@@ -43,10 +41,9 @@ class SubscriptionService {
       }
     }
 
-    // Carrega do SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    final statusStr = prefs.getString(_statusKey);
-    final expiryStr = prefs.getString(_expiryKey);
+    // Carrega do SecureStorage
+    final statusStr = await SecureStorageService.read(_statusKey);
+    final expiryStr = await SecureStorageService.read(_expiryKey);
 
     if (statusStr != null && expiryStr != null) {
       final status = _parseStatus(statusStr);
@@ -85,7 +82,7 @@ class SubscriptionService {
 
       final response = await http
           .post(
-            Uri.parse('$_baseUrl/subscription/activate'),
+            Uri.parse('${ApiConfig.baseUrl}/subscription/activate'),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               'deviceId': deviceId,
@@ -143,7 +140,7 @@ class SubscriptionService {
 
       final response = await http
           .post(
-            Uri.parse('$_baseUrl/subscription/validate'),
+            Uri.parse('${ApiConfig.baseUrl}/subscription/validate'),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'deviceId': deviceId}),
           )
@@ -195,8 +192,7 @@ class SubscriptionService {
       return _cachedExpiry;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final expiryStr = prefs.getString(_expiryKey);
+    final expiryStr = await SecureStorageService.read(_expiryKey);
 
     if (expiryStr != null) {
       return DateTime.parse(expiryStr);
@@ -222,14 +218,13 @@ class SubscriptionService {
     DateTime expiry, [
     String? transactionId,
   ]) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.setString(_statusKey, status.name);
-    await prefs.setString(_expiryKey, expiry.toIso8601String());
-    await prefs.setString(_lastCheckKey, DateTime.now().toIso8601String());
+    await SecureStorageService.write(_statusKey, status.name);
+    await SecureStorageService.write(_expiryKey, expiry.toIso8601String());
+    await SecureStorageService.write(
+        _lastCheckKey, DateTime.now().toIso8601String());
 
     if (transactionId != null) {
-      await prefs.setString(_transactionIdKey, transactionId);
+      await SecureStorageService.write(_transactionIdKey, transactionId);
     }
 
     _cachedStatus = status;
@@ -238,8 +233,7 @@ class SubscriptionService {
 
   /// Verifica se deve sincronizar com backend (a cada 24h)
   static Future<bool> shouldSyncWithBackend() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lastCheckStr = prefs.getString(_lastCheckKey);
+    final lastCheckStr = await SecureStorageService.read(_lastCheckKey);
 
     if (lastCheckStr == null) return true;
 
@@ -261,11 +255,10 @@ class SubscriptionService {
   static Future<void> clearSubscription() async {
     appLogger.warning('Limpando dados de assinatura');
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_statusKey);
-    await prefs.remove(_expiryKey);
-    await prefs.remove(_transactionIdKey);
-    await prefs.remove(_lastCheckKey);
+    await SecureStorageService.delete(_statusKey);
+    await SecureStorageService.delete(_expiryKey);
+    await SecureStorageService.delete(_transactionIdKey);
+    await SecureStorageService.delete(_lastCheckKey);
 
     _cachedStatus = null;
     _cachedExpiry = null;
@@ -294,8 +287,7 @@ class SubscriptionService {
     final daysRemaining = await getDaysRemaining();
     final deviceId = await DeviceService.getDeviceId();
 
-    final prefs = await SharedPreferences.getInstance();
-    final transactionId = prefs.getString(_transactionIdKey);
+    final transactionId = await SecureStorageService.read(_transactionIdKey);
 
     return {
       'status': status.name,

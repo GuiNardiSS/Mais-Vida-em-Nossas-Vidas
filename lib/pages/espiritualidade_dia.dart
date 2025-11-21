@@ -9,28 +9,24 @@ class EspiritualidadeDiaPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, String>> parceiros = const [
       {
-        'nome': 'YogaZen',
+        'nome': 'Bele Beauty Store',
         'descricao':
-            'Yoga: conexão corpo, mente e espírito. Aulas presenciais e online para todos os níveis.',
-        'contato': 'Instagram: @yogazen',
+            'A Bele Beauty é uma empresa espiritualizada porque nasceu com um propósito que vai além da estética: cuidar da beleza que começa na alma e transborda para o mundo. Cada peça, cada criação e cada atendimento carrega intenção, presença e energia boa — porque acreditamos que beleza verdadeira é aquela que eleva, conecta e inspira.',
+        'whatsapp': 'http://wa.me/5548998171948',
+        'instagram':
+            'https://www.instagram.com/belebeautystore?igsh=YWFoOHF0OWU0djkw',
+        'site': 'http://www.belebeauty.com.br/',
+        'contato': 'Site: www.belebeauty.com.br',
       },
       {
-        'nome': 'Espaço Luz Divina',
+        'nome': 'Reffinatto Brazil',
         'descricao':
-            'Harmonização de ambientes, terapias integrativas e cursos de autoconhecimento.',
-        'contato': 'Site: espacoluz.com',
-      },
-      {
-        'nome': 'MeditaFácil',
-        'descricao':
-            'Meditação guiada para iniciantes e avançados. Encontre equilíbrio e paz interior.',
-        'contato': 'Instagram: @meditafacil',
-      },
-      {
-        'nome': 'Alma Consciente',
-        'descricao':
-            'Conteúdo sobre espiritualidade, autoconhecimento e desenvolvimento pessoal.',
-        'contato': 'YouTube: Alma Consciente',
+            'Conheça a Reffinatto Brazil: elegância e sofisticação em cada detalhe. Visite nossas redes e saiba mais.',
+        'whatsapp': 'http://wa.me/554891005888',
+        'instagram':
+            'https://www.instagram.com/reffinattobrazil?igsh=MW9yb3A4NzFpc2pm',
+        'site': 'https://share.google/gx3lfudnBuqC5IhJC',
+        'contato': 'Instagram: @reffinattobrazil',
       },
     ];
     return Scaffold(
@@ -70,6 +66,15 @@ class EspiritualidadeDiaPage extends StatelessWidget {
                     (context, index) {
                       final p = parceiros[index];
                       final imgPath = _parceiroImagePath(p['nome']!);
+
+                      // Configuração específica por parceiro
+                      final isBele = p['nome'] == 'Bele Beauty Store';
+                      final boxFit = isBele ? BoxFit.cover : BoxFit.contain;
+                      final bgColor =
+                          isBele ? const Color(0xFF0b4c52) : Colors.white;
+                      final padding =
+                          isBele ? EdgeInsets.zero : const EdgeInsets.all(8);
+
                       return Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -91,10 +96,11 @@ class EspiritualidadeDiaPage extends StatelessWidget {
                               Container(
                                 width: isWide ? 140 : 120,
                                 height: double.infinity,
-                                color: const Color(0xFF0b4c52),
+                                color: bgColor,
+                                padding: padding,
                                 child: Image.asset(
                                   imgPath,
-                                  fit: BoxFit.cover,
+                                  fit: boxFit,
                                   errorBuilder: (ctx, e, st) => const Center(
                                     child: Column(
                                       mainAxisAlignment:
@@ -183,45 +189,95 @@ void _mostrarDetalhes(BuildContext context, Map<String, String> parceiro) {
         parceiro['nome'] ?? '',
         style: const TextStyle(color: Colors.black),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            parceiro['descricao'] ?? '',
-            style: const TextStyle(color: Colors.black),
-          ),
-          const SizedBox(height: 12),
-          InkWell(
-            onTap: () => _abrirContato(parceiro['contato'] ?? ''),
-            child: Text(
-              parceiro['contato'] ?? '',
-              style: TextStyle(
-                fontStyle: FontStyle.italic,
-                color: Theme.of(ctx).colorScheme.primary,
-                decoration: TextDecoration.underline,
-              ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              parceiro['descricao'] ?? '',
+              style: const TextStyle(color: Colors.black, height: 1.5),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            // Botões de redes sociais e contato
+            if (parceiro['whatsapp'] != null ||
+                parceiro['instagram'] != null ||
+                parceiro['site'] != null) ...[
+              const Divider(),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (parceiro['whatsapp'] != null)
+                    ElevatedButton.icon(
+                      onPressed: () => _abrirLink(parceiro['whatsapp']!),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF25D366),
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.phone, size: 18),
+                      label: const Text('WhatsApp'),
+                    ),
+                  if (parceiro['instagram'] != null)
+                    ElevatedButton.icon(
+                      onPressed: () => _abrirLink(parceiro['instagram']!),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFE4405F),
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.camera_alt, size: 18),
+                      label: const Text('Instagram'),
+                    ),
+                  if (parceiro['site'] != null)
+                    ElevatedButton.icon(
+                      onPressed: () => _abrirLink(parceiro['site']!),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0b4c52),
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.public, size: 18),
+                      label: const Text('Site'),
+                    ),
+                ],
+              ),
+            ] else ...[
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () => _abrirContato(parceiro['contato'] ?? ''),
+                child: Text(
+                  parceiro['contato'] ?? '',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Theme.of(ctx).colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
       actions: [
-        TextButton(
-          onPressed: () async {
-            final contato = parceiro['contato'] ?? '';
-            await Clipboard.setData(ClipboardData(text: contato));
-            if (context.mounted) {
-              Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Contato copiado')),
-              );
-            }
-          },
-          child: const Text(
-            'Copiar contato',
-            style: TextStyle(color: Colors.black),
+        if (parceiro['whatsapp'] == null &&
+            parceiro['instagram'] == null &&
+            parceiro['site'] == null)
+          TextButton(
+            onPressed: () async {
+              final contato = parceiro['contato'] ?? '';
+              await Clipboard.setData(ClipboardData(text: contato));
+              if (context.mounted) {
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Contato copiado')),
+                );
+              }
+            },
+            child: const Text(
+              'Copiar contato',
+              style: TextStyle(color: Colors.black),
+            ),
           ),
-        ),
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(),
           child: const Text(
@@ -280,6 +336,17 @@ Future<void> _abrirContato(String contato) async {
       Uri.parse('https://www.google.com/search?q=${Uri.encodeComponent(c)}');
   if (await canLaunchUrl(uri)) {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
+
+Future<void> _abrirLink(String url) async {
+  try {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  } catch (e) {
+    // Ignora erro silenciosamente
   }
 }
 

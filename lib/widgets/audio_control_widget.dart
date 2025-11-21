@@ -8,6 +8,7 @@ class AudioControlWidget extends StatefulWidget {
   final bool isOrganizacao;
   final String cardTitle;
   final VoidCallback? onClose;
+  final bool autoPlay;
 
   const AudioControlWidget({
     super.key,
@@ -15,6 +16,7 @@ class AudioControlWidget extends StatefulWidget {
     required this.isOrganizacao,
     required this.cardTitle,
     this.onClose,
+    this.autoPlay = false,
   });
 
   @override
@@ -59,6 +61,26 @@ class _AudioControlWidgetState extends State<AudioControlWidget> {
         _isLoading = false;
         _hasAudio = available;
       });
+
+      if (available && widget.autoPlay) {
+        _playAudio();
+      }
+    }
+  }
+
+  Future<void> _playAudio() async {
+    setState(() => _isLoading = true);
+    bool ok;
+    if (widget.isOrganizacao) {
+      ok = await _audioService.playCartaOrganizacao(widget.cardIndex);
+    } else {
+      ok = await _audioService.playCartaDia(widget.cardIndex);
+    }
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _hasAudio = ok;
+      });
     }
   }
 
@@ -68,20 +90,7 @@ class _AudioControlWidgetState extends State<AudioControlWidget> {
     } else if (_playerState == PlayerState.paused) {
       await _audioService.resumeAudio();
     } else {
-      // Se está parado, inicia a reprodução agora
-      setState(() => _isLoading = true);
-      bool ok;
-      if (widget.isOrganizacao) {
-        ok = await _audioService.playCartaOrganizacao(widget.cardIndex);
-      } else {
-        ok = await _audioService.playCartaDia(widget.cardIndex);
-      }
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _hasAudio = ok;
-        });
-      }
+      await _playAudio();
     }
   }
 

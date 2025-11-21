@@ -2,12 +2,11 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'secure_storage_service.dart';
 
 /// Service para identificação única do dispositivo
 /// Usado para validar assinatura sem necessidade de login de usuário
 class DeviceService {
-  static const String _deviceIdKey = 'app_device_id';
   static String? _cachedDeviceId;
 
   /// Obtém ID único do dispositivo (gerado uma vez e armazenado)
@@ -17,9 +16,8 @@ class DeviceService {
       return _cachedDeviceId!;
     }
 
-    // Verifica se já foi salvo anteriormente
-    final prefs = await SharedPreferences.getInstance();
-    String? savedId = prefs.getString(_deviceIdKey);
+    // Verifica se já foi salvo anteriormente no Secure Storage
+    String? savedId = await SecureStorageService.getDeviceId();
 
     if (savedId != null && savedId.isNotEmpty) {
       _cachedDeviceId = savedId;
@@ -30,7 +28,7 @@ class DeviceService {
     String deviceId = await _generateDeviceId();
 
     // Salva para uso futuro
-    await prefs.setString(_deviceIdKey, deviceId);
+    await SecureStorageService.saveDeviceId(deviceId);
     _cachedDeviceId = deviceId;
 
     return deviceId;
@@ -100,8 +98,7 @@ class DeviceService {
 
   /// Limpa o device ID (útil para testes ou reset)
   static Future<void> clearDeviceId() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_deviceIdKey);
+    await SecureStorageService.delete('device_id');
     _cachedDeviceId = null;
   }
 
@@ -109,7 +106,7 @@ class DeviceService {
   static Future<bool> hasDeviceId() async {
     if (_cachedDeviceId != null) return true;
 
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey(_deviceIdKey);
+    final savedId = await SecureStorageService.getDeviceId();
+    return savedId != null;
   }
 }
