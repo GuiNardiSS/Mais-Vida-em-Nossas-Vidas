@@ -66,7 +66,7 @@ class _ContatoPageState extends State<ContatoPage> {
                   context,
                   'E-mail',
                   FontAwesomeIcons.envelope,
-                  'mailto:helocoelho10@outlook.com',
+                  'mailto:eu@helocoelhoterapeuta.com',
                 ),
                 _buildContactButton(
                   context,
