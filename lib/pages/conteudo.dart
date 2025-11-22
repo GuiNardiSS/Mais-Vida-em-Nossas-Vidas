@@ -59,7 +59,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
             'Aprenda a importância de acolher a si mesmo e ao próximo com compaixão. O acolhimento é o primeiro passo para a cura e para a construção de relacionamentos mais saudáveis e verdadeiros.',
         'tipo': 'video',
         'videoPath': 'assets/conteudo/Acolhimento.mp4',
-        'premiumOnly': false,
+        'premiumOnly': true,
       },
       {
         'titulo': 'O Novo Líder',
@@ -67,7 +67,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
             'Descubra as características da liderança moderna baseada em empatia, propósito e espiritualidade. Entenda como inspirar pessoas e criar ambientes de trabalho mais humanos e produtivos.',
         'tipo': 'video',
         'videoPath': 'assets/conteudo/novo_lider.mp4',
-        'premiumOnly': false,
+        'premiumOnly': true,
       },
       {
         'titulo': 'O Poder do Perdão',
@@ -75,7 +75,7 @@ class _ConteudoPageState extends State<ConteudoPage> {
             'Entenda como o ato de perdoar pode libertar você de pesos do passado. O perdão não é sobre esquecer, mas sobre escolher a paz e permitir que a vida flua novamente.',
         'tipo': 'video',
         'videoPath': 'assets/conteudo/Perdão.mp4',
-        'premiumOnly': false,
+        'premiumOnly': true,
       },
 
       // TEXTOS/LIVROS INTERNOS - COM IMAGEM E LINK EXTERNO

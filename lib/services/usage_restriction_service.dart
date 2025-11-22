@@ -7,7 +7,7 @@ import 'app_logger.dart';
 class UsageRestrictionService {
   // FLAG DE ATIVAÇÃO DO SISTEMA DE RESTRIÇÕES
   // Altere para true quando quiser ativar as restrições de free/premium
-  static const bool restricoesAtivas = false;
+  static const bool restricoesAtivas = true;
   // Keys para SharedPreferences
   static const String _cartasDiaUsedKey = 'cartas_dia_used_count';
   static const String _cartasDiaDateKey = 'cartas_dia_date';
