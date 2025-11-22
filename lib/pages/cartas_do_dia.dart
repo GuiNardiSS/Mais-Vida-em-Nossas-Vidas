@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../widgets/audio_control_widget.dart';
 import '../services/audio_service.dart';
 import '../widgets/themed_logo.dart';
+import '../services/usage_restriction_service.dart';
 
 class CartasDoDiaPage extends StatefulWidget {
   const CartasDoDiaPage({super.key});
@@ -117,16 +118,40 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
   // Métodos antigos removidos; todas as cartas são exibidas diretamente nas abas.
 
   Future<void> _selecionarCarta(int index) async {
-    // Comentado temporariamente para permitir múltiplas seleções durante testes
-    // if (cartaSelecionada == null) {
+    // Se o usuário clicar na mesma carta que já selecionou hoje, apenas abre novamente
+    if (cartaSelecionada == index) {
+      await _mostrarDialogCarta(index);
+      return;
+    }
+
+    // Verifica se pode selecionar uma nova carta
+    final canSelect = await UsageRestrictionService.canSelectCartaDia();
+
+    if (!canSelect) {
+      if (!mounted) return;
+      UsageRestrictionService.showDailyLimitReachedDialog(context,
+          isCartaDia: true);
+      return;
+    }
+
+    // Se permitido, registra e mostra
     setState(() {
       cartaSelecionada = index;
     });
-    // Persistir seleção para hoje
+
+    // Registra o uso no serviço de restrição
+    await UsageRestrictionService.registerCartaDiaUsage();
+
+    // Persistir seleção para hoje (para saber QUAL carta foi escolhida)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_kDiaIndexKey, index);
     await prefs.setString(_kDiaDateKey, _todayKey());
 
+    if (!mounted) return;
+    await _mostrarDialogCarta(index);
+  }
+
+  Future<void> _mostrarDialogCarta(int index) async {
     final assetPath = await _resolveCartaAssetCached(
         'assets/cartas_do_dia', index, _cacheDia);
     if (!mounted) return;
@@ -222,9 +247,6 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
         ),
       ),
     );
-    // } else {
-    //   _mostrarBloqueio();
-    // }
   }
 
   // Método _mostrarBloqueio removido temporariamente para permitir múltiplas seleções durante testes
@@ -244,12 +266,6 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
           sliver: SliverToBoxAdapter(
             child: Column(
               children: const [
-                Text(
-                  'Cartas do Dia',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 16),
                 Text(
                   'Escolha uma das cartas abaixo para receber uma mensagem que conecte sua essência com o Divino. Você pode escolher uma carta por dia no modo gratuito.',
                   style: TextStyle(fontSize: 16),

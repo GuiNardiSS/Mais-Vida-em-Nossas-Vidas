@@ -39,12 +39,12 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final items = [
       (
-        title: 'Cartas do Dia',
+        title: 'Mais Vida em Nossas Vidas',
         icon: Icons.auto_awesome,
         builderIndex: 0,
       ),
       (
-        title: 'Cartas para sua organização',
+        title: 'Espiritualidade nas Organizações',
         icon: Icons.business_center,
         builderIndex: 1,
       ),
@@ -64,7 +64,7 @@ class _HomePageState extends State<HomePage> {
         builderIndex: 4,
       ),
       (
-        title: 'Espiritualidade no dia a dia',
+        title: 'Patrocinadores',
         icon: Icons.self_improvement,
         builderIndex: 5,
       ),

@@ -106,6 +106,12 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
   }
 
   Future<void> _selecionarCartaOrg(int index) async {
+    // Se o usuário clicar na mesma carta que já selecionou hoje, apenas abre novamente
+    if (cartaOrgSelecionada == index) {
+      await _mostrarDialogCartaOrg(index);
+      return;
+    }
+
     // ===== SISTEMA DE RESTRIÇÕES FREE/PREMIUM =====
     // Verifica se usuário pode selecionar carta
     final canSelect = await UsageRestrictionService.canSelectCartaOrganizacao();
@@ -131,6 +137,11 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
     await UsageRestrictionService.registerCartaOrganizacaoUsage();
     // ===================================================
 
+    if (!mounted) return;
+    await _mostrarDialogCartaOrg(index);
+  }
+
+  Future<void> _mostrarDialogCartaOrg(int index) async {
     final assetPath = await _resolveCartaAssetCached(
         'assets/cartas_do_dia_org', index, _cacheOrg);
     if (!mounted) return;
@@ -233,12 +244,6 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Text(
-            'Cartas da Organização',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
           const Text(
             'Escolha uma das cartas abaixo para receber uma mensagem de clima organizacional. Você pode escolher uma carta por dia no modo gratuito.',
             style: TextStyle(fontSize: 16),

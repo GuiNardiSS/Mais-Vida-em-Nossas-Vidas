@@ -21,7 +21,7 @@ class EspiritualidadeDiaPage extends StatelessWidget {
       {
         'nome': 'Reffinatto Brazil',
         'descricao':
-            'Conheça a Reffinatto Brazil: elegância e sofisticação em cada detalhe. Visite nossas redes e saiba mais.',
+            'Na Reffinatto Brazil, o atendimento humanizado é o coração que transforma projetos em lares e móveis em experiências de bem-estar.',
         'whatsapp': 'http://wa.me/554891005888',
         'instagram':
             'https://www.instagram.com/reffinattobrazil?igsh=MW9yb3A4NzFpc2pm',
@@ -43,7 +43,7 @@ class EspiritualidadeDiaPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: const [
                       Text(
-                        'Parceiros',
+                        'Patrocinadores',
                         style: TextStyle(
                             fontSize: 22, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,

@@ -304,11 +304,26 @@ class _ContatoPageState extends State<ContatoPage> {
 
   Future<void> _launchUrl(String url) async {
     final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      // Handle error - could show a snackbar or dialog
-      debugPrint('Could not launch $url');
+    try {
+      // Tenta lançar diretamente. O modo externalApplication é importante para mailto
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        debugPrint('Could not launch $url');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content:
+                    Text('Não foi possível abrir o aplicativo de e-mail.')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error launching $url: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Erro ao tentar abrir o link ou e-mail.')),
+        );
+      }
     }
   }
 }
