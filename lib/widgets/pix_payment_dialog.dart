@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/payment_service.dart';
 import 'dart:convert';
 
@@ -26,14 +27,31 @@ class _PixPaymentDialogState extends State<PixPaymentDialog> {
   String? _pixKeyDisplay; // A chave para exibição
   String? _errorMessage;
   String? _paymentId;
+  final TextEditingController _codeController = TextEditingController();
+  bool _isVerifyingCode = false;
 
   // Chave PIX fixa fornecida
   static const String _staticPixKey = '0b0437c5-82c1-4351-974b-4cc35dcdd551';
+
+  // Códigos de ativação válidos (hardcoded para funcionamento sem backend)
+  static const List<String> _validCodes = [
+    'MAISVIDA2025',
+    'LUZ2025',
+    'GRATIDAO',
+    'AMOR',
+    'PROSPERIDADE'
+  ];
 
   @override
   void initState() {
     super.initState();
     _generatePixPayment();
+  }
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
   }
 
   Future<void> _generatePixPayment() async {
@@ -60,9 +78,6 @@ class _PixPaymentDialogState extends State<PixPaymentDialog> {
         _paymentId = 'pix_${DateTime.now().millisecondsSinceEpoch}';
         _isLoading = false;
       });
-
-      // Simula verificação de pagamento
-      _startPaymentMonitoring();
     } catch (e) {
       setState(() {
         _hasError = true;
@@ -83,8 +98,7 @@ class _PixPaymentDialogState extends State<PixPaymentDialog> {
 
     // Payload Format Indicator
     sb.write(_formatField('00', '01'));
-    // Point of Initiation Method (12 = Dynamic, 11 = Static? Usually 12 for dynamic, but static key can be 11 or 12. Let's use 12 if we want amount)
-    // Actually for static QR with amount, 12 is fine.
+    // Point of Initiation Method (12 = Dynamic)
     sb.write(_formatField('01', '12'));
 
     // Merchant Account Information (GUI + Key)
@@ -147,59 +161,81 @@ class _PixPaymentDialogState extends State<PixPaymentDialog> {
     return crc.toRadixString(16).toUpperCase().padLeft(4, '0');
   }
 
-  void _startPaymentMonitoring() {
-    // Em produção, isso seria feito via webhook ou polling do backend
+  Future<void> _sendReceiptViaWhatsApp() async {
+    const phoneNumber = '5511999999999'; // Substitua pelo número real
+    final message =
+        'Olá! Realizei o pagamento da assinatura do app Mais Vida em Nossas Vidas. Segue o comprovante. Aguardo meu código de ativação.';
+    final url =
+        'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
+
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Não foi possível abrir o WhatsApp')),
+        );
+      }
+    }
   }
 
-  Future<void> _confirmPayment() async {
-    if (_paymentId == null) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final success = await PaymentService.confirmPayment(
-        paymentId: _paymentId!,
-        paymentMethod: 'pix',
-        amount: widget.amount,
+  Future<void> _verifyCodeAndActivate() async {
+    final code = _codeController.text.trim().toUpperCase();
+    if (code.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Digite o código de ativação')),
       );
+      return;
+    }
 
-      if (success) {
-        if (mounted) {
-          Navigator.of(context).pop();
-          widget.onSuccess();
+    setState(() => _isVerifyingCode = true);
+    await Future.delayed(const Duration(seconds: 1)); // Simula verificação
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content:
-                  Text('Pagamento confirmado! Assinatura ativada com sucesso.'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
-            ),
-          );
+    if (_validCodes.contains(code)) {
+      // Código válido! Ativa a assinatura
+      if (_paymentId == null) return;
+
+      try {
+        final success = await PaymentService.confirmPayment(
+          paymentId: _paymentId!,
+          paymentMethod: 'pix_code_$code',
+          amount: widget.amount,
+        );
+
+        if (success) {
+          if (mounted) {
+            Navigator.of(context).pop();
+            widget.onSuccess();
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Código válido! Assinatura ativada com sucesso.'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
         }
-      } else {
+      } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Erro ao confirmar pagamento. Tente novamente.'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('Erro ao ativar: $e')),
           );
         }
       }
-    } catch (e) {
+    } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro: $e'),
+          const SnackBar(
+            content: Text('Código inválido. Verifique e tente novamente.'),
             backgroundColor: Colors.red,
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    }
+
+    if (mounted) {
+      setState(() => _isVerifyingCode = false);
     }
   }
 
@@ -231,155 +267,162 @@ class _PixPaymentDialogState extends State<PixPaymentDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Título
-            Row(
-              children: [
-                const Icon(Icons.pix, color: Color(0xFF0b4c52), size: 28),
-                const SizedBox(width: 12),
-                const Text(
-                  'Pagamento via PIX',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Conteúdo
-            if (_isLoading)
-              const Column(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Título
+              Row(
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Gerando código PIX...'),
-                ],
-              )
-            else if (_hasError)
-              Column(
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    _errorMessage ?? 'Erro ao gerar PIX',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: _generatePixPayment,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Tentar Novamente'),
-                  ),
-                ],
-              )
-            else
-              Column(
-                children: [
-                  // Valor
-                  Text(
-                    'R\$ ${widget.amount.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFa99045),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // QR Code
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: QrImageView(
-                      data: _qrCodePayload ?? '',
-                      version: QrVersions.auto,
-                      size: 200,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Instruções
+                  const Icon(Icons.pix, color: Color(0xFF0b4c52), size: 28),
+                  const SizedBox(width: 12),
                   const Text(
-                    'Escaneie o QR Code no app do seu banco',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Botão Copiar Código Pix (Payload)
-                  OutlinedButton.icon(
-                    onPressed: _copyPayload,
-                    icon: const Icon(Icons.copy),
-                    label: const Text('Copiar Código Pix (Copia e Cola)'),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 48),
+                    'Pagamento via PIX',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
-
-                  // Botão Copiar Chave (Apenas a chave)
-                  TextButton.icon(
-                    onPressed: _copyKey,
-                    icon: const Icon(Icons.key, size: 16),
-                    label: Text('Copiar apenas a chave: $_pixKeyDisplay'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.grey[700],
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Botão Confirmar Pagamento (simulação)
-                  ElevatedButton.icon(
-                    onPressed: _confirmPayment,
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text('Já paguei'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0b4c52),
-                      minimumSize: const Size(double.infinity, 48),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Nota
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Após realizar o pagamento, clique em "Já paguei" para ativar sua assinatura.',
-                            style: TextStyle(fontSize: 12, color: Colors.blue),
-                          ),
-                        ),
-                      ],
-                    ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
-          ],
+              const SizedBox(height: 24),
+
+              // Conteúdo
+              if (_isLoading)
+                const Column(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Gerando código PIX...'),
+                  ],
+                )
+              else if (_hasError)
+                Column(
+                  children: [
+                    const Icon(Icons.error_outline,
+                        size: 64, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text(
+                      _errorMessage ?? 'Erro ao gerar PIX',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: _generatePixPayment,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Tentar Novamente'),
+                    ),
+                  ],
+                )
+              else
+                Column(
+                  children: [
+                    // Valor
+                    Text(
+                      'R\$ ${widget.amount.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFa99045),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // QR Code
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: QrImageView(
+                        data: _qrCodePayload ?? '',
+                        version: QrVersions.auto,
+                        size: 180,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Botões de Cópia
+                    OutlinedButton.icon(
+                      onPressed: _copyPayload,
+                      icon: const Icon(Icons.copy, size: 18),
+                      label: const Text('Copiar Código Pix'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 40),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: _copyKey,
+                      icon: const Icon(Icons.key, size: 16),
+                      label: Text('Copiar chave: $_pixKeyDisplay'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey[700],
+                      ),
+                    ),
+
+                    const Divider(height: 32),
+
+                    // Seção de Validação Manual
+                    const Text(
+                      'Validação do Pagamento',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '1. Envie o comprovante pelo WhatsApp.\n2. Receba seu código de ativação.\n3. Digite o código abaixo para liberar.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Botão WhatsApp
+                    ElevatedButton.icon(
+                      onPressed: _sendReceiptViaWhatsApp,
+                      icon: const Icon(Icons.chat),
+                      label: const Text('Enviar Comprovante'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF25D366),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 40),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Campo de Código
+                    TextField(
+                      controller: _codeController,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: InputDecoration(
+                        labelText: 'Código de Ativação',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.check_circle,
+                              color: Color(0xFF0b4c52)),
+                          onPressed:
+                              _isVerifyingCode ? null : _verifyCodeAndActivate,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (_isVerifyingCode) const LinearProgressIndicator(),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );

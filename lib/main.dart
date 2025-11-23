@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pages/cartas_intro.dart';
+import 'pages/assinaturas.dart';
 import 'services/notifications.dart';
 import 'services/palette.dart';
 import 'services/route_observer.dart';
@@ -113,6 +114,9 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: const CartasIntroPage(),
+      routes: {
+        '/assinaturas': (context) => const AssinaturasPage(),
+      },
     );
   }
 }
