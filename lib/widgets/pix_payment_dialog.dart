@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../services/payment_service.dart';
 import 'dart:convert';
 
@@ -27,20 +26,10 @@ class _PixPaymentDialogState extends State<PixPaymentDialog> {
   String? _pixKeyDisplay; // A chave para exibição
   String? _errorMessage;
   String? _paymentId;
-  final TextEditingController _codeController = TextEditingController();
-  bool _isVerifyingCode = false;
+  bool _isProcessingPayment = false;
 
   // Chave PIX fixa fornecida
   static const String _staticPixKey = '0b0437c5-82c1-4351-974b-4cc35dcdd551';
-
-  // Códigos de ativação válidos (hardcoded para funcionamento sem backend)
-  static const List<String> _validCodes = [
-    'MAISVIDA2025',
-    'LUZ2025',
-    'GRATIDAO',
-    'AMOR',
-    'PROSPERIDADE'
-  ];
 
   @override
   void initState() {
@@ -50,8 +39,55 @@ class _PixPaymentDialogState extends State<PixPaymentDialog> {
 
   @override
   void dispose() {
-    _codeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _confirmPayment() async {
+    if (_paymentId == null) return;
+
+    setState(() => _isProcessingPayment = true);
+
+    try {
+      final success = await PaymentService.confirmPayment(
+        paymentId: _paymentId!,
+        paymentMethod: 'pix',
+        amount: widget.amount,
+      );
+
+      if (mounted) {
+        setState(() => _isProcessingPayment = false);
+
+        if (success) {
+          Navigator.of(context).pop();
+          widget.onSuccess();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Assinatura ativada com sucesso!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erro ao ativar assinatura. Tente novamente.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProcessingPayment = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _generatePixPayment() async {
@@ -159,84 +195,6 @@ class _PixPaymentDialogState extends State<PixPaymentDialog> {
       crc &= 0xFFFF;
     }
     return crc.toRadixString(16).toUpperCase().padLeft(4, '0');
-  }
-
-  Future<void> _sendReceiptViaWhatsApp() async {
-    const phoneNumber = '5511999999999'; // Substitua pelo número real
-    final message =
-        'Olá! Realizei o pagamento da assinatura do app Mais Vida em Nossas Vidas. Segue o comprovante. Aguardo meu código de ativação.';
-    final url =
-        'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
-
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Não foi possível abrir o WhatsApp')),
-        );
-      }
-    }
-  }
-
-  Future<void> _verifyCodeAndActivate() async {
-    final code = _codeController.text.trim().toUpperCase();
-    if (code.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Digite o código de ativação')),
-      );
-      return;
-    }
-
-    setState(() => _isVerifyingCode = true);
-    await Future.delayed(const Duration(seconds: 1)); // Simula verificação
-
-    if (_validCodes.contains(code)) {
-      // Código válido! Ativa a assinatura
-      if (_paymentId == null) return;
-
-      try {
-        final success = await PaymentService.confirmPayment(
-          paymentId: _paymentId!,
-          paymentMethod: 'pix_code_$code',
-          amount: widget.amount,
-        );
-
-        if (success) {
-          if (mounted) {
-            Navigator.of(context).pop();
-            widget.onSuccess();
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Código válido! Assinatura ativada com sucesso.'),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 3),
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao ativar: $e')),
-          );
-        }
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Código inválido. Verifique e tente novamente.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-
-    if (mounted) {
-      setState(() => _isVerifyingCode = false);
-    }
   }
 
   void _copyPayload() {
@@ -373,52 +331,37 @@ class _PixPaymentDialogState extends State<PixPaymentDialog> {
 
                     const Divider(height: 32),
 
-                    // Seção de Validação Manual
+                    // Botão de Confirmação de Pagamento
                     const Text(
-                      'Validação do Pagamento',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      '1. Envie o comprovante pelo WhatsApp.\n2. Receba seu código de ativação.\n3. Digite o código abaixo para liberar.',
+                      'Após realizar o pagamento via Pix',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, color: Colors.grey),
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
 
-                    // Botão WhatsApp
                     ElevatedButton.icon(
-                      onPressed: _sendReceiptViaWhatsApp,
-                      icon: const Icon(Icons.chat),
-                      label: const Text('Enviar Comprovante'),
+                      onPressed: _isProcessingPayment ? null : _confirmPayment,
+                      icon: _isProcessingPayment
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.check_circle),
+                      label: Text(
+                        _isProcessingPayment
+                            ? 'Verificando...'
+                            : 'Pagamento Realizado',
+                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF25D366),
+                        backgroundColor: const Color(0xFFa99045),
                         foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 40),
+                        minimumSize: const Size(double.infinity, 48),
                       ),
                     ),
-                    const SizedBox(height: 16),
-
-                    // Campo de Código
-                    TextField(
-                      controller: _codeController,
-                      textCapitalization: TextCapitalization.characters,
-                      decoration: InputDecoration(
-                        labelText: 'Código de Ativação',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.check_circle,
-                              color: Color(0xFF0b4c52)),
-                          onPressed:
-                              _isVerifyingCode ? null : _verifyCodeAndActivate,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (_isVerifyingCode) const LinearProgressIndicator(),
                   ],
                 ),
             ],

@@ -28,6 +28,15 @@ class EspiritualidadeDiaPage extends StatelessWidget {
         'site': 'https://share.google/gx3lfudnBuqC5IhJC',
         'contato': 'Instagram: @reffinattobrazil',
       },
+      {
+        'nome': 'Marangoni Marcas',
+        'descricao':
+            'Uma empresa que preza por valores, propósito e conexões humanas genuínas, que vão além do lucro financeiro, trazendo uma cultura que envolve o equilíbrio das emoções.',
+        'whatsapp': 'https://wa.me/message/D3JYFXNU6NTTK1',
+        'instagram': 'https://www.instagram.com/marangonimarcas',
+        'site': 'http://www.marangonimarcas.com.br/',
+        'contato': 'Site: www.marangonimarcas.com.br',
+      },
     ];
     return Scaffold(
       body: LayoutBuilder(
@@ -69,11 +78,18 @@ class EspiritualidadeDiaPage extends StatelessWidget {
 
                       // Configuração específica por parceiro
                       final isBele = p['nome'] == 'Bele Beauty Store';
-                      final boxFit = isBele ? BoxFit.cover : BoxFit.contain;
-                      final bgColor =
-                          isBele ? const Color(0xFF0b4c52) : Colors.white;
-                      final padding =
-                          isBele ? EdgeInsets.zero : const EdgeInsets.all(8);
+                      final isMarangoni = p['nome'] == 'Marangoni Marcas';
+                      final boxFit = (isBele || isMarangoni)
+                          ? BoxFit.cover
+                          : BoxFit.contain;
+                      final bgColor = isBele
+                          ? const Color(0xFF0b4c52)
+                          : isMarangoni
+                              ? Colors.white
+                              : Colors.white;
+                      final padding = (isBele || isMarangoni)
+                          ? EdgeInsets.zero
+                          : const EdgeInsets.all(8);
 
                       return Container(
                         decoration: BoxDecoration(
@@ -308,7 +324,10 @@ String _parceiroImagePath(String nome) {
       .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
       .replaceAll(RegExp(r'_+'), '_')
       .replaceAll(RegExp(r'^_|_$'), '');
-  return 'assets/parceiros/$simple.png';
+
+  // Marangoni usa .jpg, outros usam .png
+  final extension = simple == 'marangoni_marcas' ? 'jpg' : 'png';
+  return 'assets/parceiros/$simple.$extension';
 }
 
 Future<void> _abrirContato(String contato) async {

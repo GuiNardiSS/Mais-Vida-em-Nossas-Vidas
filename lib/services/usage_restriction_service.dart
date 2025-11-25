@@ -204,23 +204,28 @@ class UsageRestrictionService {
           children: [
             Text(
               feature ?? 'Este recurso é exclusivo para assinantes premium.',
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
             ),
             const SizedBox(height: 16),
             const Text(
               'Com a assinatura premium você terá:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
             ),
             const SizedBox(height: 8),
-            const Text('✨ Cartas ilimitadas por dia'),
-            const Text('✨ Acesso a conteúdos exclusivos'),
-            const Text('✨ Novos recursos em primeira mão'),
+            const Text('✨ Cartas ilimitadas por dia',
+                style: TextStyle(color: Colors.black87)),
+            const Text('✨ Acesso a conteúdos exclusivos',
+                style: TextStyle(color: Colors.black87)),
+            const Text('✨ Novos recursos em primeira mão',
+                style: TextStyle(color: Colors.black87)),
             const SizedBox(height: 16),
             const Text(
               'Assine agora e aproveite todos os benefícios!',
               style: TextStyle(
                 fontStyle: FontStyle.italic,
                 color: Color(0xFF0b4c52),
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -269,12 +274,15 @@ class UsageRestrictionService {
           children: [
             Text(
               'Você já selecionou sua carta gratuita de $cartaType hoje!',
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             const Text(
               'Volte amanhã para selecionar uma nova carta ou assine o plano premium para cartas ilimitadas.',
-              style: TextStyle(height: 1.4),
+              style: TextStyle(height: 1.4, color: Colors.black87),
             ),
             const SizedBox(height: 16),
             Container(
@@ -288,12 +296,16 @@ class UsageRestrictionService {
                 children: [
                   Text(
                     '✨ Benefícios Premium:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.black87),
                   ),
                   SizedBox(height: 4),
-                  Text('• Cartas ilimitadas por dia'),
-                  Text('• Acesso a conteúdos exclusivos'),
-                  Text('• Suporte prioritário'),
+                  Text('• Cartas ilimitadas por dia',
+                      style: TextStyle(color: Colors.black87)),
+                  Text('• Acesso a conteúdos exclusivos',
+                      style: TextStyle(color: Colors.black87)),
+                  Text('• Suporte prioritário',
+                      style: TextStyle(color: Colors.black87)),
                 ],
               ),
             ),

@@ -60,8 +60,8 @@ class AppLogger {
         level: kDebugMode ? Level.debug : Level.info,
       );
 
-      // Configura arquivo de log
-      if (_enableFileLogging) {
+      // Configura arquivo de log APENAS EM DEBUG MODE
+      if (_enableFileLogging && kDebugMode) {
         await _setupLogFile();
       }
 
@@ -75,6 +75,8 @@ class AppLogger {
       });
     } catch (e) {
       debugPrint('Erro ao inicializar AppLogger: $e');
+      // Marca como inicializado mesmo com erro para não travar
+      _isInitialized = true;
     }
   }
 

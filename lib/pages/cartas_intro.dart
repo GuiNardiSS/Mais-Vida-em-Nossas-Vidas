@@ -77,48 +77,46 @@ class _CartasIntroPageState extends State<CartasIntroPage> {
             const SizedBox(height: 24),
 
             // Vídeo de boas-vindas
-            Container(
-              width: double.infinity,
-              height: 400,
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: _isVideoInitialized && _controller != null
-                    ? Center(
-                        child: AspectRatio(
-                          aspectRatio: _controller!.value.aspectRatio,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              VideoPlayer(_controller!),
-                              Center(
-                                child: IconButton(
-                                  icon: Icon(
-                                    _controller!.value.isPlaying
-                                        ? Icons.pause_circle_filled
-                                        : Icons.play_circle_filled,
-                                    size: 64,
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (_controller!.value.isPlaying) {
-                                        _controller!.pause();
-                                      } else {
-                                        _controller!.play();
-                                      }
-                                    });
-                                  },
+                    ? AspectRatio(
+                        aspectRatio: _controller!.value.aspectRatio,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            VideoPlayer(_controller!),
+                            Center(
+                              child: IconButton(
+                                icon: Icon(
+                                  _controller!.value.isPlaying
+                                      ? Icons.pause_circle_filled
+                                      : Icons.play_circle_filled,
+                                  size: 64,
+                                  color: Colors.white.withValues(alpha: 0.9),
                                 ),
+                                onPressed: () {
+                                  setState(() {
+                                    if (_controller!.value.isPlaying) {
+                                      _controller!.pause();
+                                    } else {
+                                      _controller!.play();
+                                    }
+                                  });
+                                },
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       )
-                    : Center(
+                    : Container(
+                        height: 250,
+                        alignment: Alignment.center,
                         child: _errorMessage != null
                             ? Column(
                                 mainAxisAlignment: MainAxisAlignment.center,

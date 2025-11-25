@@ -81,13 +81,18 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Player de vídeo
-          LayoutBuilder(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Assinaturas'),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Player de vídeo
+            LayoutBuilder(
             builder: (context, constraints) {
               final orientation = MediaQuery.of(context).orientation;
               final screenHeight = MediaQuery.of(context).size.height;
@@ -279,7 +284,8 @@ class _AssinaturasPageState extends State<AssinaturasPage> {
                 ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
