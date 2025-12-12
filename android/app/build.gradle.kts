@@ -17,7 +17,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.meu_app_flutter"
+    namespace = "com.maisvidaemnossasvidas.official"
     compileSdk = flutter.compileSdkVersion
 
     ndkVersion = "27.0.12077973"
@@ -47,6 +47,10 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        ndk {
+            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
+        }
     }
 
     buildTypes {
