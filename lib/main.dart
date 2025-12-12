@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'pages/cartas_intro.dart';
 import 'pages/assinaturas.dart';
 import 'services/notifications.dart';
@@ -9,46 +10,61 @@ import 'services/logging_navigator_observer.dart';
 // Removed unused import of HomePage
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // Captura erros não tratados de forma síncrona
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    // Inicializa sistema de logging (agora seguro em release)
-    await appLogger.initialize();
-    appLogger.info('Aplicativo iniciado', data: {
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  } catch (e) {
-    // Se o logger falhar, continua sem ele
-    debugPrint('Erro ao inicializar logger: $e');
-  }
-
-  try {
-    // Inicialize apenas as notificações (NÃO agende notificações exatas automaticamente)
-    await NotificationsService.init();
-    // await NotificationsService.scheduleEvery3Hours(); // Removido para evitar travamento
-  } catch (e) {
-    // Se notificações falharem, continua sem elas
-    debugPrint('Erro ao inicializar notificações: $e');
-  }
-
-  // Registra erro global de Flutter
-  FlutterError.onError = (FlutterErrorDetails details) {
     try {
-      appLogger.fatal(
-        'Flutter Error: ${details.exception}',
-        error: details.exception,
-        stackTrace: details.stack,
-        data: {
-          'library': details.library ?? 'unknown',
-          'context': details.context?.toString() ?? 'no context',
-        },
-      );
+      // Inicializa sistema de logging (agora seguro em release)
+      await appLogger.initialize();
+      appLogger.info('Aplicativo iniciado', data: {
+        'timestamp': DateTime.now().toIso8601String(),
+      });
     } catch (e) {
-      debugPrint('Erro ao logar: $e');
+      // Se o logger falhar, continua sem ele
+      debugPrint('Erro ao inicializar logger: $e');
     }
-  };
 
-  runApp(const MyApp());
+    try {
+      // Inicialize apenas as notificações (NÃO agende notificações exatas automaticamente)
+      await NotificationsService.init();
+      // await NotificationsService.scheduleEvery3Hours(); // Removido para evitar travamento
+    } catch (e) {
+      // Se notificações falharem, continua sem elas
+      debugPrint('Erro ao inicializar notificações: $e');
+    }
+
+    // Registra erro global de Flutter
+    FlutterError.onError = (FlutterErrorDetails details) {
+      try {
+        appLogger.fatal(
+          'Flutter Error: ${details.exception}',
+          error: details.exception,
+          stackTrace: details.stack,
+          data: {
+            'library': details.library ?? 'unknown',
+            'context': details.context?.toString() ?? 'no context',
+          },
+        );
+      } catch (e) {
+        debugPrint('Erro ao logar: $e');
+      }
+      // NÃO deixa o app crashar em produção
+      FlutterError.dumpErrorToConsole(details);
+    };
+
+    runApp(const MyApp());
+  }, (error, stackTrace) {
+    // Captura erros assíncronos não tratados
+    debugPrint('Erro não tratado: $error');
+    debugPrint('StackTrace: $stackTrace');
+    try {
+      appLogger.fatal('Erro assíncrono não tratado',
+          error: error, stackTrace: stackTrace);
+    } catch (e) {
+      debugPrint('Erro ao logar erro assíncrono: $e');
+    }
+  });
 }
 
 class MyApp extends StatelessWidget {
