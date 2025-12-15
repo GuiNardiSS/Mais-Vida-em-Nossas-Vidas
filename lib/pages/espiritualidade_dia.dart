@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../utils/responsive_helper.dart';
 
 class EspiritualidadeDiaPage extends StatelessWidget {
   const EspiritualidadeDiaPage({super.key});
@@ -42,32 +43,42 @@ class EspiritualidadeDiaPage extends StatelessWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 600;
-          final crossAxisCount = isWide ? 2 : 1;
+          final crossAxisCount = ResponsiveHelper.getGridColumns(
+            context,
+            mobile: 1,
+            tablet: 2,
+            desktop: 3,
+          );
+          final padding = ResponsiveHelper.getPadding(context);
+          final fontSize = ResponsiveHelper.getFontSize(context,
+              mobile: 22, tablet: 24, desktop: 26);
+          final gridSpacing = ResponsiveHelper.getGridSpacing(context);
+
           return CustomScrollView(
             slivers: [
               SliverPadding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(padding),
                 sliver: SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: const [
+                    children: [
                       Text(
                         'Patrocinadores',
                         style: TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold),
+                            fontSize: fontSize, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 12),
+                      SizedBox(height: padding * 0.75),
                     ],
                   ),
                 ),
               ),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: padding),
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxisCount,
-                    mainAxisSpacing: 16,
+                    mainAxisSpacing: gridSpacing,
                     crossAxisSpacing: 16,
                     childAspectRatio: isWide ? 2.8 : 2.2,
                   ),

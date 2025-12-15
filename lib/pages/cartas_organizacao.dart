@@ -6,6 +6,7 @@ import '../widgets/themed_logo.dart';
 import '../widgets/audio_control_widget.dart';
 import '../services/audio_service.dart';
 import '../services/usage_restriction_service.dart';
+import '../utils/responsive_helper.dart';
 
 class CartasOrganizacaoPage extends StatefulWidget {
   const CartasOrganizacaoPage({super.key});
@@ -239,28 +240,38 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final padding = ResponsiveHelper.getPadding(context);
+    final fontSize = ResponsiveHelper.getFontSize(context,
+        mobile: 16, tablet: 18, desktop: 20);
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Text(
+          Text(
             'Escolha uma das cartas abaixo para receber uma mensagem de clima organizacional. Você pode escolher uma carta por dia no modo gratuito.',
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: fontSize),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: padding),
           LayoutBuilder(
             builder: (context, constraints) {
-              final int crossAxisCount =
-                  (constraints.maxWidth / 130).floor().clamp(3, 5);
+              final int crossAxisCount = ResponsiveHelper.getGridColumns(
+                context,
+                mobile: 3,
+                tablet: 4,
+                desktop: 5,
+              );
+              final gridSpacing = ResponsiveHelper.getGridSpacing(context);
+
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                  crossAxisSpacing: gridSpacing,
+                  mainAxisSpacing: gridSpacing,
                   childAspectRatio: 0.9,
                 ),
                 itemCount: 50,

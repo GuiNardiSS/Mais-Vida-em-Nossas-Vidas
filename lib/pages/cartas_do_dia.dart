@@ -6,6 +6,7 @@ import '../widgets/audio_control_widget.dart';
 import '../services/audio_service.dart';
 import '../widgets/themed_logo.dart';
 import '../services/usage_restriction_service.dart';
+import '../utils/responsive_helper.dart';
 
 class CartasDoDiaPage extends StatefulWidget {
   const CartasDoDiaPage({super.key});
@@ -277,16 +278,24 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: EdgeInsets.symmetric(
+            horizontal: ResponsiveHelper.getPadding(context),
+          ),
           sliver: SliverLayoutBuilder(
             builder: (context, constraints) {
-              final int crossAxisCount =
-                  (constraints.crossAxisExtent / 130).floor().clamp(3, 5);
+              final int crossAxisCount = ResponsiveHelper.getGridColumns(
+                context,
+                mobile: 3,
+                tablet: 4,
+                desktop: 5,
+              );
+              final gridSpacing = ResponsiveHelper.getGridSpacing(context);
+
               return SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                  crossAxisSpacing: gridSpacing,
+                  mainAxisSpacing: gridSpacing,
                   childAspectRatio: 0.9,
                 ),
                 delegate: SliverChildBuilderDelegate(
