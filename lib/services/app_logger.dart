@@ -43,40 +43,72 @@ class AppLogger {
       _sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
       _sessionStart = DateTime.now();
 
-      // Obtém device ID
-      _deviceId = await DeviceService.getDeviceId();
+      // Obtém device ID de forma segura com timeout
+      try {
+        _deviceId = await DeviceService.getDeviceId().timeout(
+          const Duration(seconds: 2),
+          onTimeout: () {
+            debugPrint('⚠️ Timeout ao obter device ID');
+            return 'timeout_device';
+          },
+        );
+      } catch (e) {
+        debugPrint('⚠️ Erro ao obter device ID: $e');
+        _deviceId = 'unknown_device';
+      }
 
-      // Configura o logger
-      _logger = Logger(
-        printer: PrettyPrinter(
-          methodCount: 2,
-          errorMethodCount: 8,
-          lineLength: 120,
-          colors: true,
-          printEmojis: true,
-          dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
-        ),
-        filter: ProductionFilter(),
-        level: kDebugMode ? Level.debug : Level.info,
-      );
+      // Configura o logger com tratamento de erro
+      try {
+        _logger = Logger(
+          printer: PrettyPrinter(
+            methodCount: 2,
+            errorMethodCount: 8,
+            lineLength: 120,
+            colors: true,
+            printEmojis: true,
+            dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
+          ),
+          filter: ProductionFilter(),
+          level: kDebugMode ? Level.debug : Level.info,
+        );
+      } catch (e) {
+        debugPrint('⚠️ Erro ao criar logger: $e');
+        // Usa logger básico como fallback
+        _logger = Logger(printer: SimplePrinter(), level: Level.info);
+      }
 
       // Configura arquivo de log APENAS EM DEBUG MODE
       if (_enableFileLogging && kDebugMode) {
-        await _setupLogFile();
+        try {
+          await _setupLogFile().timeout(
+            const Duration(seconds: 2),
+            onTimeout: () {
+              debugPrint('⚠️ Timeout ao configurar arquivo de log');
+            },
+          );
+        } catch (e) {
+          debugPrint('⚠️ Erro ao configurar arquivo de log: $e');
+          // Continua sem arquivo de log
+        }
       }
 
       _isInitialized = true;
 
       // Log de inicialização
-      info('App Logger inicializado', data: {
-        'sessionId': _sessionId,
-        'deviceId': _deviceId?.substring(0, 8),
-        'platform': Platform.operatingSystem,
-      });
+      info(
+        'App Logger inicializado',
+        data: {
+          'sessionId': _sessionId,
+          'deviceId': _deviceId?.substring(0, 8),
+          'platform': Platform.operatingSystem,
+        },
+      );
     } catch (e) {
-      debugPrint('Erro ao inicializar AppLogger: $e');
-      // Marca como inicializado mesmo com erro para não travar
+      debugPrint('❌ Erro CRÍTICO ao inicializar AppLogger: $e');
+      // Marca como inicializado mesmo com erro para não travar o app
       _isInitialized = true;
+      // Usa logger básico como fallback
+      _logger = Logger(filter: ProductionFilter(), level: Level.warning);
     }
   }
 
@@ -109,12 +141,16 @@ class AppLogger {
 
   /// Escreve no arquivo de log
   Future<void> _writeToFile(
-      String level, String message, Map<String, dynamic>? data) async {
+    String level,
+    String message,
+    Map<String, dynamic>? data,
+  ) async {
     if (!_enableFileLogging || _logFile == null) return;
 
     try {
-      final timestamp =
-          DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(DateTime.now());
+      final timestamp = DateFormat(
+        'yyyy-MM-dd HH:mm:ss.SSS',
+      ).format(DateTime.now());
       final logEntry = StringBuffer();
 
       logEntry.writeln('[$timestamp] [$level] $message');
@@ -124,7 +160,8 @@ class AppLogger {
       }
 
       logEntry.writeln(
-          '  Session: $_sessionId | Device: ${_deviceId?.substring(0, 8)}');
+        '  Session: $_sessionId | Device: ${_deviceId?.substring(0, 8)}',
+      );
       logEntry.writeln('---');
 
       await _logFile!.writeAsString(
@@ -139,7 +176,10 @@ class AppLogger {
 
   /// Envia log para o backend
   Future<void> _sendToBackend(
-      String level, String message, Map<String, dynamic>? data) async {
+    String level,
+    String message,
+    Map<String, dynamic>? data,
+  ) async {
     if (!_enableRemoteLogging) return;
 
     try {
@@ -191,8 +231,12 @@ class AppLogger {
   }
 
   /// Log de erro
-  void error(String message,
-      {dynamic error, StackTrace? stackTrace, Map<String, dynamic>? data}) {
+  void error(
+    String message, {
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? data,
+  }) {
     _logger.e(message, error: error, stackTrace: stackTrace);
 
     final errorData = {
@@ -206,8 +250,12 @@ class AppLogger {
   }
 
   /// Log de erro fatal (crítico)
-  void fatal(String message,
-      {dynamic error, StackTrace? stackTrace, Map<String, dynamic>? data}) {
+  void fatal(
+    String message, {
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? data,
+  }) {
     _logger.f(message, error: error, stackTrace: stackTrace);
 
     final errorData = {
@@ -224,62 +272,88 @@ class AppLogger {
 
   /// Log de navegação de página
   void logPageView(String pageName, {Map<String, dynamic>? data}) {
-    info('Page View: $pageName', data: {
-      'page': pageName,
-      'timestamp': DateTime.now().toIso8601String(),
-      ...?data,
-    });
+    info(
+      'Page View: $pageName',
+      data: {
+        'page': pageName,
+        'timestamp': DateTime.now().toIso8601String(),
+        ...?data,
+      },
+    );
   }
 
   /// Log de evento do usuário
   void logEvent(String eventName, {Map<String, dynamic>? data}) {
-    info('Event: $eventName', data: {
-      'event': eventName,
-      'timestamp': DateTime.now().toIso8601String(),
-      ...?data,
-    });
+    info(
+      'Event: $eventName',
+      data: {
+        'event': eventName,
+        'timestamp': DateTime.now().toIso8601String(),
+        ...?data,
+      },
+    );
   }
 
   /// Log de pagamento
-  void logPayment(String method, double amount, String status,
-      {Map<String, dynamic>? data}) {
-    info('Payment: $method', data: {
-      'method': method,
-      'amount': amount,
-      'status': status,
-      'timestamp': DateTime.now().toIso8601String(),
-      ...?data,
-    });
+  void logPayment(
+    String method,
+    double amount,
+    String status, {
+    Map<String, dynamic>? data,
+  }) {
+    info(
+      'Payment: $method',
+      data: {
+        'method': method,
+        'amount': amount,
+        'status': status,
+        'timestamp': DateTime.now().toIso8601String(),
+        ...?data,
+      },
+    );
   }
 
   /// Log de assinatura
   void logSubscription(String action, {Map<String, dynamic>? data}) {
-    info('Subscription: $action', data: {
-      'action': action,
-      'timestamp': DateTime.now().toIso8601String(),
-      ...?data,
-    });
+    info(
+      'Subscription: $action',
+      data: {
+        'action': action,
+        'timestamp': DateTime.now().toIso8601String(),
+        ...?data,
+      },
+    );
   }
 
   /// Log de performance
-  void logPerformance(String operation, Duration duration,
-      {Map<String, dynamic>? data}) {
-    info('Performance: $operation', data: {
-      'operation': operation,
-      'duration_ms': duration.inMilliseconds,
-      'timestamp': DateTime.now().toIso8601String(),
-      ...?data,
-    });
+  void logPerformance(
+    String operation,
+    Duration duration, {
+    Map<String, dynamic>? data,
+  }) {
+    info(
+      'Performance: $operation',
+      data: {
+        'operation': operation,
+        'duration_ms': duration.inMilliseconds,
+        'timestamp': DateTime.now().toIso8601String(),
+        ...?data,
+      },
+    );
   }
 
   /// Log de erro de rede
-  void logNetworkError(String endpoint, int? statusCode, dynamic error,
-      {Map<String, dynamic>? data}) {
-    error('Network Error: $endpoint', error: error, data: {
-      'endpoint': endpoint,
-      'statusCode': statusCode,
-      ...?data,
-    });
+  void logNetworkError(
+    String endpoint,
+    int? statusCode,
+    dynamic error, {
+    Map<String, dynamic>? data,
+  }) {
+    error(
+      'Network Error: $endpoint',
+      error: error,
+      data: {'endpoint': endpoint, 'statusCode': statusCode, ...?data},
+    );
   }
 
   // ==================== MÉTRICAS ====================
@@ -367,7 +441,8 @@ class AppLogger {
 
       buffer.writeln('=== LOGS EXPORTADOS ===');
       buffer.writeln(
-          'Data: ${DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now())}');
+        'Data: ${DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.now())}',
+      );
       buffer.writeln('Session: $_sessionId');
       buffer.writeln('Device: $_deviceId');
       buffer.writeln('=' * 50);
@@ -390,10 +465,10 @@ class AppLogger {
   /// Finaliza a sessão de logging
   Future<void> closeSession() async {
     final duration = getSessionDuration();
-    info('Sessão encerrada', data: {
-      'duration_minutes': duration?.inMinutes,
-      'sessionId': _sessionId,
-    });
+    info(
+      'Sessão encerrada',
+      data: {'duration_minutes': duration?.inMinutes, 'sessionId': _sessionId},
+    );
   }
 }
 

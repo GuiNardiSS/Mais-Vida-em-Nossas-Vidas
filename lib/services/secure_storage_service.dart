@@ -3,12 +3,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
 class SecureStorageService {
-  // Configuração otimizada para compatibilidade com todos os dispositivos Android
+  // Configuração DEFAULT - Mais compatível com todos os dispositivos
+  // Usa RSA OAEP + AES-GCM sem biometria (funciona em Android 6.0+)
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(
       encryptedSharedPreferences: true,
-      // Permite reset automático se houver erro de keystore
       resetOnError: true,
+      // Desativa a proteção automática que pode causar crash
+      sharedPreferencesName: 'FlutterSecureStorage',
+      preferencesKeyPrefix: 'flutter.',
     ),
   );
 

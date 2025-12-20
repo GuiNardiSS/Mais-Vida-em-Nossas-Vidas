@@ -1,16 +1,33 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Permissão para acessar internet (vídeos, APIs, etc) -->
     <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- Permissões para audioplayers -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    
+    <!-- Permissões para video_player -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- Permissão para armazenamento local (flutter_secure_storage, sqflite) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
     
     <application
         android:label="Mais Vida em Nossas Vidas"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="false"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"

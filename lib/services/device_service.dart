@@ -11,27 +11,46 @@ class DeviceService {
 
   /// Obtém ID único do dispositivo (gerado uma vez e armazenado)
   static Future<String> getDeviceId() async {
-    // Retorna do cache se já tiver
-    if (_cachedDeviceId != null) {
-      return _cachedDeviceId!;
+    try {
+      // Retorna do cache se já tiver
+      if (_cachedDeviceId != null) {
+        return _cachedDeviceId!;
+      }
+
+      // Aguarda um pouco para garantir que o sistema está pronto
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      // Verifica se já foi salvo anteriormente no Secure Storage
+      String? savedId;
+      try {
+        savedId = await SecureStorageService.getDeviceId();
+      } catch (e) {
+        // Se SecureStorage falhar, gera novo ID
+        savedId = null;
+      }
+
+      if (savedId != null && savedId.isNotEmpty) {
+        _cachedDeviceId = savedId;
+        return savedId;
+      }
+
+      // Gera novo ID baseado no dispositivo
+      String deviceId = await _generateDeviceId();
+
+      // Tenta salvar para uso futuro (não falha se não conseguir)
+      try {
+        await SecureStorageService.saveDeviceId(deviceId);
+      } catch (e) {
+        // Ignora erro de salvamento
+      }
+
+      _cachedDeviceId = deviceId;
+
+      return deviceId;
+    } catch (e) {
+      // Em caso de qualquer erro, retorna um ID temporário
+      return 'temp_${DateTime.now().millisecondsSinceEpoch}';
     }
-
-    // Verifica se já foi salvo anteriormente no Secure Storage
-    String? savedId = await SecureStorageService.getDeviceId();
-
-    if (savedId != null && savedId.isNotEmpty) {
-      _cachedDeviceId = savedId;
-      return savedId;
-    }
-
-    // Gera novo ID baseado no dispositivo
-    String deviceId = await _generateDeviceId();
-
-    // Salva para uso futuro
-    await SecureStorageService.saveDeviceId(deviceId);
-    _cachedDeviceId = deviceId;
-
-    return deviceId;
   }
 
   /// Gera ID único do dispositivo baseado em informações do hardware

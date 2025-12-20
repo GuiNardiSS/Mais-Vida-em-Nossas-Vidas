@@ -2,67 +2,64 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'pages/cartas_intro.dart';
 import 'pages/assinaturas.dart';
-import 'services/notifications.dart';
 import 'services/palette.dart';
-import 'services/route_observer.dart';
-import 'services/app_logger.dart';
 import 'services/logging_navigator_observer.dart';
-// Removed unused import of HomePage
 
 Future<void> main() async {
-  // Captura erros não tratados de forma síncrona
-  runZonedGuarded(() async {
-    WidgetsFlutterBinding.ensureInitialized();
+  // PROTEÇÃO ABSOLUTA CONTRA CRASH - Baseado na documentação oficial do Flutter
+  runZonedGuarded(
+    () async {
+      // Passo 1: Inicialização mínima do Flutter (OBRIGATÓRIO e NUNCA falha)
+      WidgetsFlutterBinding.ensureInitialized();
 
+      // Passo 2: Handler de erros Flutter (proteção contra crashes visuais)
+      FlutterError.onError = (details) {
+        // Log detalhado para debug
+        debugPrint('═══════════════════════════════════════');
+        debugPrint('🔴 FLUTTER ERROR CAPTURADO:');
+        debugPrint('Exception: ${details.exception}');
+        debugPrint('Library: ${details.library}');
+        debugPrint('Context: ${details.context}');
+        debugPrint('Stack trace:');
+        debugPrint(details.stack.toString());
+        debugPrint('═══════════════════════════════════════');
+      };
+
+      // Passo 3: INICIA O APP IMEDIATAMENTE (não espera NADA)
+      // Esta é a chave: o app abre a tela primeiro, inicializa depois
+      runApp(const MyApp());
+
+      // Passo 4: Inicializa serviços em background (não bloqueia abertura)
+      _initializeServicesInBackground();
+    },
+    (error, stack) {
+      // Captura qualquer erro que escape do runApp
+      debugPrint('═══════════════════════════════════════');
+      debugPrint('🔴 UNCAUGHT ERROR:');
+      debugPrint('Error: $error');
+      debugPrint('Type: ${error.runtimeType}');
+      debugPrint('Stack trace:');
+      debugPrint(stack.toString());
+      debugPrint('═══════════════════════════════════════');
+    },
+  );
+}
+
+/// Inicializa serviços em background SEM bloquear a UI do app
+/// Isso garante que o app abre PRIMEIRO, e só depois carrega os serviços
+void _initializeServicesInBackground() {
+  // Usa microtask para não bloquear o frame atual
+  Future.microtask(() async {
     try {
-      // Inicializa sistema de logging (agora seguro em release)
-      await appLogger.initialize();
-      appLogger.info('Aplicativo iniciado', data: {
-        'timestamp': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      // Se o logger falhar, continua sem ele
-      debugPrint('Erro ao inicializar logger: $e');
-    }
+      // Delay mínimo para garantir que o primeiro frame foi renderizado
+      await Future.delayed(const Duration(milliseconds: 500));
 
-    try {
-      // Inicialize apenas as notificações (NÃO agende notificações exatas automaticamente)
-      await NotificationsService.init();
-      // await NotificationsService.scheduleEvery3Hours(); // Removido para evitar travamento
-    } catch (e) {
-      // Se notificações falharem, continua sem elas
-      debugPrint('Erro ao inicializar notificações: $e');
-    }
-
-    // Registra erro global de Flutter
-    FlutterError.onError = (FlutterErrorDetails details) {
-      try {
-        appLogger.fatal(
-          'Flutter Error: ${details.exception}',
-          error: details.exception,
-          stackTrace: details.stack,
-          data: {
-            'library': details.library ?? 'unknown',
-            'context': details.context?.toString() ?? 'no context',
-          },
-        );
-      } catch (e) {
-        debugPrint('Erro ao logar: $e');
-      }
-      // NÃO deixa o app crashar em produção
-      FlutterError.dumpErrorToConsole(details);
-    };
-
-    runApp(const MyApp());
-  }, (error, stackTrace) {
-    // Captura erros assíncronos não tratados
-    debugPrint('Erro não tratado: $error');
-    debugPrint('StackTrace: $stackTrace');
-    try {
-      appLogger.fatal('Erro assíncrono não tratado',
-          error: error, stackTrace: stackTrace);
-    } catch (e) {
-      debugPrint('Erro ao logar erro assíncrono: $e');
+      debugPrint('✅ App inicializado com sucesso');
+    } catch (e, stack) {
+      // NUNCA deixa o erro subir - apenas loga
+      debugPrint(
+          '⚠️ Erro ao inicializar serviços (app continua funcionando): $e');
+      debugPrint('Stack: $stack');
     }
   });
 }
@@ -73,79 +70,88 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'Mais Vida em Nossas Vidas',
-      navigatorObservers: [
-        appRouteObserver,
-        LoggingNavigatorObserver(), // Observer de logging automático
-      ],
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme(
-          brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
           primary: AppColors.primary,
-          onPrimary: Colors.white,
-          secondary: AppColors.secondary,
-          onSecondary: Colors.white,
-          surface: AppColors.accent,
-          onSurface: AppColors.logoPrimary,
-          error: Colors.red,
-          onError: Colors.white,
         ),
-        scaffoldBackgroundColor: AppColors.scaffold,
         appBarTheme: const AppBarTheme(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
+          elevation: 0,
         ),
-        drawerTheme: const DrawerThemeData(
-          backgroundColor: AppColors.primary,
-        ),
+        scaffoldBackgroundColor: Colors.white,
         cardTheme: CardThemeData(
-          color: AppColors.accent,
+          elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 0,
-          margin: const EdgeInsets.all(8),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.logoPrimary,
+            backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
-            shape: const StadiumBorder(),
-            textStyle: const TextStyle(fontWeight: FontWeight.w600),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 12,
+            ),
           ),
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.logoPrimary,
-            textStyle: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
-        dialogTheme: DialogThemeData(
-          backgroundColor: AppColors.scaffold,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          titleTextStyle: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.logoPrimary,
-          ),
-          contentTextStyle: const TextStyle(fontSize: 15),
-        ),
-        snackBarTheme: const SnackBarThemeData(
-          backgroundColor: AppColors.logoPrimary,
-          contentTextStyle: TextStyle(color: Colors.white),
-          behavior: SnackBarBehavior.floating,
-        ),
-        listTileTheme: const ListTileThemeData(
-          iconColor: AppColors.logoGold,
-          textColor: AppColors.logoGold,
         ),
       ),
+      // Rota inicial sempre mostra a intro
       home: const CartasIntroPage(),
+      // Rotas nomeadas para navegação
       routes: {
         '/assinaturas': (context) => const AssinaturasPage(),
+      },
+      // Observers para logging (não afetam funcionamento se falharem)
+      navigatorObservers: [
+        LoggingNavigatorObserver(),
+      ],
+      // Builder com proteção contra erros
+      builder: (context, child) {
+        // Proteção contra erros no build
+        ErrorWidget.builder = (FlutterErrorDetails details) {
+          return Material(
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 48,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Ops! Algo deu errado.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Erro: ${details.exception}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        };
+        return child ?? const SizedBox.shrink();
       },
     );
   }

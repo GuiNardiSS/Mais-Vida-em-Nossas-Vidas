@@ -53,13 +53,25 @@ android {
         }
     }
 
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+            // DESABILITADO: minify e shrink causam crash em produção
             isMinifyEnabled = false
             isShrinkResources = false
-            // Desabilitando ProGuard completamente para evitar tela branca
+            // ProGuard desabilitado para evitar crash ao inicializar
             // proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            // Debug mode sem otimizações
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

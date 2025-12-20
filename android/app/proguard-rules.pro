@@ -35,3 +35,32 @@
 -keepclasseswithmembernames class * {
     native <methods>;
 }
+
+# Flutter Secure Storage - CRÍTICO para evitar crash
+-keep class com.it_nomads.fluttersecurestorage.** { *; }
+-dontwarn com.it_nomads.fluttersecurestorage.**
+
+# SQLite
+-keep class com.tekartik.sqflite.** { *; }
+
+# Shared Preferences
+-keep class io.flutter.plugins.sharedpreferences.** { *; }
+
+# Path Provider
+-keep class io.flutter.plugins.pathprovider.** { *; }
+
+# URL Launcher
+-keep class io.flutter.plugins.urllauncher.** { *; }
+
+# Device Info
+-keep class dev.fluttercommunity.plus.device_info.** { *; }
+
+# Notifications
+-keep class com.dexterous.** { *; }
+
+# Preserva anotações e assinaturas
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes Exception
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
