@@ -59,18 +59,11 @@ class DeviceService {
     String identifier = '';
 
     try {
-      if (Platform.isAndroid) {
-        final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        // Combina múltiplos identificadores para criar ID único
-        identifier =
-            '${androidInfo.id}-${androidInfo.device}-${androidInfo.model}';
-      } else if (Platform.isIOS) {
-        final IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-        identifier = '${iosInfo.identifierForVendor}-${iosInfo.model}';
-      } else {
-        // Fallback para outras plataformas
-        identifier = 'unknown-${DateTime.now().millisecondsSinceEpoch}';
-      }
+      // ANDROID ONLY - App configurado apenas para Android
+      final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      // Combina múltiplos identificadores para criar ID único
+      identifier =
+          '${androidInfo.id}-${androidInfo.device}-${androidInfo.model}-${androidInfo.brand}';
     } catch (e) {
       // Se falhar, gera ID aleatório baseado no timestamp
       identifier = 'fallback-${DateTime.now().millisecondsSinceEpoch}';
@@ -88,31 +81,21 @@ class DeviceService {
     final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
     try {
-      if (Platform.isAndroid) {
-        final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        return {
-          'platform': 'android',
-          'model': androidInfo.model,
-          'brand': androidInfo.brand,
-          'device': androidInfo.device,
-          'version': androidInfo.version.release,
-          'sdkInt': androidInfo.version.sdkInt,
-        };
-      } else if (Platform.isIOS) {
-        final IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-        return {
-          'platform': 'ios',
-          'model': iosInfo.model,
-          'name': iosInfo.name,
-          'systemVersion': iosInfo.systemVersion,
-          'utsname': iosInfo.utsname.machine,
-        };
-      }
+      // ANDROID ONLY - App configurado apenas para Android
+      final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      return {
+        'platform': 'android',
+        'model': androidInfo.model,
+        'brand': androidInfo.brand,
+        'device': androidInfo.device,
+        'manufacturer': androidInfo.manufacturer,
+        'version': androidInfo.version.release,
+        'sdkInt': androidInfo.version.sdkInt,
+        'androidId': androidInfo.id,
+      };
     } catch (e) {
-      return {'platform': 'unknown', 'error': e.toString()};
+      return {'platform': 'android', 'error': e.toString()};
     }
-
-    return {'platform': 'unknown'};
   }
 
   /// Limpa o device ID (útil para testes ou reset)
