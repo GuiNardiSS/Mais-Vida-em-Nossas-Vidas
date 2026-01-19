@@ -27,6 +27,18 @@ jobs:
         with:
           flutter-version: '3.38.7'
           channel: 'stable'
+          cache: true
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.android/build-cache
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Get Flutter dependencies
         run: flutter pub get
@@ -53,7 +65,13 @@ jobs:
           cat android/key.properties
 
       - name: Build APK Release
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release \
+            --dart-define=dart.vm.product=true \
+            --obfuscate \
+            --split-debug-info=build/app/outputs/symbols
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:+HeapDumpOnOutOfMemoryError" -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=2
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
