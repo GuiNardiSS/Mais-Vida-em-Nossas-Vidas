@@ -1,5 +1,8 @@
 
 # Meu App Flutter - Mais Vida em Nossas Vidas
+
+🚀 Build automático do APK via GitHub Actions!
+
 - Abra `projeto-espiritualidade.code-workspace` no VS Code
 - Emulador Android usa http://10.0.2.2:3000 para acessar o back-end
 - Rode:
