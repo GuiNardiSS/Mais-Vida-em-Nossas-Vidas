@@ -36,7 +36,7 @@ class _CardsPageState extends State<CardsPage> {
   String get _folder =>
       _isOrg ? 'assets/cartas_do_dia_org' : 'assets/cartas_do_dia';
   String get _logo =>
-      _isOrg ? 'assets/logo_carta_org.png' : 'assets/logo_carta_dia.png';
+      _isOrg ? 'assets/logo_carta_org.webp' : 'assets/logo_carta_dia.webp';
   String get _indexKey => _isOrg ? 'carta_org_index' : 'carta_dia_index';
   String get _dateKey => _isOrg ? 'carta_org_date' : 'carta_dia_date';
   String get _title => _isOrg

@@ -199,7 +199,7 @@ class _AudioMapperPageState extends State<AudioMapperPage> {
                   Expanded(
                     child: InteractiveViewer(
                       child: Image.asset(
-                        'assets/cartas_do_dia/Back (${_currentCardIndex + 1}).png',
+                        'assets/cartas_do_dia/Back (${_currentCardIndex + 1}).webp',
                         fit: BoxFit.contain,
                         errorBuilder: (_, __, ___) => const Center(
                           child: Text('Imagem não encontrada'),

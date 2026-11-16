@@ -510,7 +510,7 @@ class _ThemeCard extends StatelessWidget {
               color: AppColors.gold.withValues(alpha: 0.32),
             ),
             image: const DecorationImage(
-              image: AssetImage('assets/logo_conheca_mais.png'),
+              image: AssetImage('assets/logo_conheca_mais.webp'),
               fit: BoxFit.cover,
             ),
             boxShadow: AppShadows.soft(theme.brightness),

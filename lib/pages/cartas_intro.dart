@@ -383,14 +383,14 @@ class _CardsSlide extends StatelessWidget {
               Transform.rotate(
                 angle: -0.12,
                 child: _CardPreview(
-                  image: 'assets/logo_carta_org.png',
+                  image: 'assets/logo_carta_org.webp',
                   width: 150,
                 ),
               ),
               Transform.rotate(
                 angle: 0.10,
                 child: _CardPreview(
-                  image: 'assets/logo_carta_dia.png',
+                  image: 'assets/logo_carta_dia.webp',
                   width: 160,
                 ),
               ),
