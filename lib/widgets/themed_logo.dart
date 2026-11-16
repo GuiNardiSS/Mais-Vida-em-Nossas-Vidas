@@ -1,7 +1,6 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../core/assets/asset_resolver.dart';
 
 /// Widget para exibir uma logo que se adapta ao tema (claro/escuro),
 /// preferindo SVG (se existir) e caindo para PNG automaticamente.
@@ -25,51 +24,44 @@ class ThemedLogo extends StatelessWidget {
     this.scale,
   });
 
+  static final AssetResolver _resolver = AssetResolver();
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final candidates = <_AssetCandidate>[
-      if (isDark) _AssetCandidate('${baseName}_dark.svg', _AssetType.svg),
-      _AssetCandidate('$baseName.svg', _AssetType.svg),
-      if (isDark) _AssetCandidate('${baseName}_dark.png', _AssetType.png),
-      _AssetCandidate('$baseName.png', _AssetType.png),
-    ];
-
-    Widget child = const SizedBox.shrink();
-
-    return FutureBuilder<List<String>>(
-      future: _loadAssets(),
+    return FutureBuilder<String?>(
+      future: _resolver.resolveFirst(<String>[
+        if (isDark) '${baseName}_dark.svg',
+        '$baseName.svg',
+        if (isDark) '${baseName}_dark.png',
+        '$baseName.png',
+      ]),
       builder: (context, snapshot) {
-        final available = snapshot.data ?? const <String>[];
-        _AssetCandidate? chosen;
-        for (final c in candidates) {
-          if (available.contains(c.path)) {
-            chosen = c;
-            break;
-          }
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SizedBox.shrink();
         }
 
-        if (chosen == null) {
-          child = const Center(
+        final path = snapshot.data;
+        if (path == null) {
+          return const Center(
             child: Icon(Icons.image_not_supported, color: Colors.white70),
           );
-        } else if (chosen.type == _AssetType.svg) {
-          child = SvgPicture.asset(
-            chosen.path,
-            fit: fit,
-            alignment: alignment,
-          );
-        } else {
-          child = Image.asset(
-            chosen.path,
-            fit: fit,
-            alignment: alignment,
-            filterQuality: FilterQuality
-                .medium, // Otimização: High é desnecessário para ícones/logos
-            cacheWidth: 500, // Otimização: Limita memória usada
-          );
         }
+
+        Widget child = path.endsWith('.svg')
+            ? SvgPicture.asset(
+                path,
+                fit: fit,
+                alignment: alignment,
+              )
+            : Image.asset(
+                path,
+                fit: fit,
+                alignment: alignment,
+                filterQuality: FilterQuality.medium,
+                cacheWidth: 500,
+              );
 
         if (scale != null && scale != 1.0) {
           child = Transform.scale(scale: scale!, child: child);
@@ -79,27 +71,4 @@ class ThemedLogo extends StatelessWidget {
       },
     );
   }
-
-  static List<String>? _cachedManifest;
-
-  Future<List<String>> _loadAssets() async {
-    if (_cachedManifest != null) return _cachedManifest!;
-    // Lê o AssetManifest.json via rootBundle
-    try {
-      final manifestJson = await rootBundle.loadString('AssetManifest.json');
-      final Map<String, dynamic> manifest = json.decode(manifestJson);
-      _cachedManifest = manifest.keys.cast<String>().toList(growable: false);
-      return _cachedManifest!;
-    } catch (_) {
-      return const <String>[];
-    }
-  }
-}
-
-enum _AssetType { svg, png }
-
-class _AssetCandidate {
-  final String path;
-  final _AssetType type;
-  const _AssetCandidate(this.path, this.type);
 }

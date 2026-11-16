@@ -36,9 +36,20 @@ Registro do estado encontrado antes de qualquer alteração de comportamento.
 
 | Comando | Resultado inicial |
 |---|---|
-| `flutter analyze` | pendente (Flutter em instalação) |
-| `flutter test` | pendente |
-| `flutter build apk --debug` | pendente |
-| `cd backend && npm ci` | pendente |
+| `flutter pub get` | OK, dependências atualizadas |
+| `flutter analyze` | 0 issues após migrar imports para `package:material_ui` |
+| `flutter test` | 12 testes passando (AssetResolver + BrCodeGenerator) |
+| `flutter build apk --debug` | pendente: Android SDK e Developer Mode não estão configurados |
+| `cd backend && npm ci` | OK, 120 pacotes |
+
+## Primeiras correções aplicadas
+
+- `AssetManifest.json` eliminado; novo `AssetResolver` usa `AssetManifest.loadFromAssetBundle` com cache e fallback.
+- Cartas do dia, cartas de organização, áudio e logos temáticos passaram a usar o resolvedor único.
+- Gerador de BR Code PIX com CRC16 válido, coberto por testes.
+- Migração dos imports de Material para o pacote oficial `material_ui` (Flutter 3.50).
+- Backend incorporado ao monorepo em `backend/`; submódulo quebrado removido.
+- `build_log.txt` removido do versionamento.
+- CI de portfólio criado em `.github/workflows/ci.yml` (analyze, testes e APK debug, sem secrets).
 
 Este documento será atualizado ao final da Fase 0 com os resultados medidos.

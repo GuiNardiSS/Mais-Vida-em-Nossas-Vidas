@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// RouteObserver global para permitir que widgets (como players de vídeo)
 /// reajam a mudanças de rota (pausar ao navegar para outra tela e retomar ao voltar).

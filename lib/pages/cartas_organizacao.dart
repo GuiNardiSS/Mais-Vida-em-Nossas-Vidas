@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'dart:convert';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/assets/asset_resolver.dart';
 import '../widgets/themed_logo.dart';
 import '../widgets/audio_control_widget.dart';
 import '../services/audio_service.dart';
@@ -22,9 +21,7 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
   int? cartaOrgSelecionada;
   bool cartasOrgReveladas = true;
 
-  // Cache de assets e manifest
-  Set<String>? _assetSet;
-  final Map<int, String?> _cacheOrg = {};
+  final AssetResolver _assetResolver = AssetResolver();
 
   static const _kOrgIndexKey = 'carta_org_index';
   static const _kOrgDateKey = 'carta_org_date';
@@ -36,7 +33,6 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
   }
 
   Future<void> _initAsync() async {
-    await _ensureManifestLoaded();
     final prefs = await SharedPreferences.getInstance();
     final today = _todayKey();
 
@@ -58,52 +54,6 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
     final m = now.month.toString().padLeft(2, '0');
     final d = now.day.toString().padLeft(2, '0');
     return '${now.year}-$m-$d';
-  }
-
-  Future<void> _ensureManifestLoaded() async {
-    if (_assetSet != null) return;
-    final manifestJson = await rootBundle.loadString('AssetManifest.json');
-    final Map<String, dynamic> manifest = json.decode(manifestJson);
-    _assetSet = manifest.keys.toSet();
-  }
-
-  Future<String?> _resolveCartaAssetCached(
-      String folder, int index, Map<int, String?> cache) async {
-    if (cache.containsKey(index)) return cache[index];
-    await _ensureManifestLoaded();
-    final assets = _assetSet ?? {};
-    final n = index + 1;
-    final candidates = <String>[
-      '$folder/Back ($n).png',
-      '$folder/Back($n).png',
-      '$folder/Back $n.png',
-      '$folder/Back ($n).PNG',
-      '$folder/Back($n).PNG',
-      '$folder/Back $n.PNG',
-      '$folder/Back.png',
-    ];
-    for (final c in candidates) {
-      if (assets.contains(c)) {
-        cache[index] = c;
-        return c;
-      }
-    }
-
-    final prefix = '$folder/';
-    final regex = RegExp(r'^Back[^0-9]*\(?\s*(\d{1,2})\s*\)?\.(?:png|PNG)\$');
-    for (final path in assets.where((p) => p.startsWith(prefix))) {
-      final name = path.substring(prefix.length);
-      final m = regex.firstMatch(name);
-      if (m != null) {
-        final numStr = m.group(1);
-        if (numStr != null && int.tryParse(numStr) == n) {
-          cache[index] = path;
-          return path;
-        }
-      }
-    }
-    cache[index] = null;
-    return null;
   }
 
   Future<void> _selecionarCartaOrg(int index) async {
@@ -143,8 +93,8 @@ class _CartasOrganizacaoPageState extends State<CartasOrganizacaoPage> {
   }
 
   Future<void> _mostrarDialogCartaOrg(int index) async {
-    final assetPath = await _resolveCartaAssetCached(
-        'assets/cartas_do_dia_org', index, _cacheOrg);
+    final assetPath =
+        await _assetResolver.resolveCardBack('assets/cartas_do_dia_org', index);
     if (!mounted) return;
     showDialog(
       context: context,

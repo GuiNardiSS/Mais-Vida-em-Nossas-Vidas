@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import '../core/assets/asset_resolver.dart';
 import '../widgets/audio_control_widget.dart';
 import '../services/audio_service.dart';
 import '../widgets/themed_logo.dart';
@@ -23,17 +22,11 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
   int? cartaSelecionada;
   // Mostrar todas as cartas imediatamente
   bool cartasReveladas = true;
-  // Cache de assets e manifest
-  Set<String>? _assetSet;
-  final Map<int, String?> _cacheDia = {};
+  final AssetResolver _assetResolver = AssetResolver();
 
   // Persistência diária
   static const _kDiaIndexKey = 'carta_dia_index';
   static const _kDiaDateKey = 'carta_dia_date';
-
-  // Otimização: Regex compilado estaticamente
-  static final _backFileRegex =
-      RegExp(r'^Back[^0-9]*\(?\s*(\d{1,2})\s*\)?\.(?:png|PNG)\$');
 
   @override
   void initState() {
@@ -42,8 +35,6 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
   }
 
   Future<void> _initAsync() async {
-    // Carrega manifest uma vez
-    await _ensureManifestLoaded();
     // Carrega estado persistido
     final prefs = await SharedPreferences.getInstance();
     final today = _todayKey();
@@ -67,53 +58,6 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
     final m = now.month.toString().padLeft(2, '0');
     final d = now.day.toString().padLeft(2, '0');
     return '${now.year}-$m-$d';
-  }
-
-  Future<void> _ensureManifestLoaded() async {
-    if (_assetSet != null) return;
-    final manifestJson = await rootBundle.loadString('AssetManifest.json');
-    final Map<String, dynamic> manifest = json.decode(manifestJson);
-    _assetSet = manifest.keys.toSet();
-  }
-
-  Future<String?> _resolveCartaAssetCached(
-      String folder, int index, Map<int, String?> cache) async {
-    if (cache.containsKey(index)) return cache[index];
-    await _ensureManifestLoaded();
-    final assets = _assetSet ?? {};
-    final n = index + 1;
-    final candidates = <String>[
-      '$folder/Back ($n).png',
-      '$folder/Back($n).png',
-      '$folder/Back $n.png',
-      '$folder/Back ($n).PNG',
-      '$folder/Back($n).PNG',
-      '$folder/Back $n.PNG',
-      '$folder/Back.png',
-    ];
-    for (final c in candidates) {
-      if (assets.contains(c)) {
-        cache[index] = c;
-        return c;
-      }
-    }
-
-    // Varre o manifest no folder para encontrar arquivo "Back ... <n>.png"
-    // evitando confundir 1 com 10 (captura número exato do nome)
-    final prefix = '$folder/';
-    for (final path in assets.where((p) => p.startsWith(prefix))) {
-      final name = path.substring(prefix.length);
-      final m = _backFileRegex.firstMatch(name);
-      if (m != null) {
-        final numStr = m.group(1);
-        if (numStr != null && int.tryParse(numStr) == n) {
-          cache[index] = path;
-          return path;
-        }
-      }
-    }
-    cache[index] = null;
-    return null;
   }
 
   // Métodos antigos removidos; todas as cartas são exibidas diretamente nas abas.
@@ -153,8 +97,8 @@ class _CartasDoDiaPageState extends State<CartasDoDiaPage> {
   }
 
   Future<void> _mostrarDialogCarta(int index) async {
-    final assetPath = await _resolveCartaAssetCached(
-        'assets/cartas_do_dia', index, _cacheDia);
+    final assetPath =
+        await _assetResolver.resolveCardBack('assets/cartas_do_dia', index);
     if (!mounted) return;
     showDialog(
       context: context,

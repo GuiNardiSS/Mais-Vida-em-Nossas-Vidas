@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Helper para gerenciar responsividade em diferentes tamanhos de tela
 class ResponsiveHelper {

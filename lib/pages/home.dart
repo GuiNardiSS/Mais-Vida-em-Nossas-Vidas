@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'inicio.dart';
 import 'cartas_do_dia.dart';
 import 'cartas_organizacao.dart';

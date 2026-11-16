@@ -1,8 +1,8 @@
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../core/assets/asset_resolver.dart';
 
 class AudioService {
   static final AudioService _instance = AudioService._internal();
@@ -12,10 +12,7 @@ class AudioService {
   final AudioPlayer _audioPlayer = AudioPlayer();
   String? _currentlyPlayingPath;
   bool _isInitialized = false;
-  Set<String>? _assetSet;
-
-  // Cache de caminhos de áudio válidos
-  final Map<String, String?> _audioPathCache = {};
+  final AssetResolver _assetResolver = AssetResolver();
 
   // Mapeamento carta -> áudio (null = usar mapeamento 1:1 padrão)
   Map<int, int>? _audioMappingDia;
@@ -25,13 +22,6 @@ class AudioService {
     if (_isInitialized) return;
 
     try {
-      // Carrega o manifest de assets
-      final manifestJson = await rootBundle.loadString('AssetManifest.json');
-      final Map<String, dynamic> manifest = json.decode(manifestJson);
-      _assetSet = manifest.keys.toSet();
-      debugPrint(
-          'AudioService: Manifest carregado com \\${_assetSet!.length} assets');
-
       // Carrega mapeamento de áudios
       await _loadAudioMapping();
 
@@ -73,66 +63,7 @@ class AudioService {
   }
 
   Future<String?> _resolveAudioPath(String folder, int index) async {
-    final cacheKey = '$folder-$index';
-    if (_audioPathCache.containsKey(cacheKey)) {
-      return _audioPathCache[cacheKey];
-    }
-
-    await initialize();
-    final assets = _assetSet; // pode ser null
-    final cardNumber = index + 1;
-
-    // Diferentes formatos de nome de arquivo que podem existir
-    final candidates = <String>[
-      '$folder/carta_$cardNumber.mp3',
-      '$folder/carta$cardNumber.mp3',
-      '$folder/Carta_$cardNumber.mp3',
-      '$folder/Carta$cardNumber.mp3',
-      '$folder/audio_$cardNumber.mp3',
-      '$folder/audio$cardNumber.mp3',
-      '$folder/Audio_$cardNumber.mp3',
-      '$folder/Audio$cardNumber.mp3',
-      '$folder/$cardNumber.mp3',
-      '$folder/carta_${cardNumber.toString().padLeft(2, '0')}.mp3',
-      '$folder/audio_${cardNumber.toString().padLeft(2, '0')}.mp3',
-    ];
-
-    if (assets != null && assets.isNotEmpty) {
-      for (final candidate in candidates) {
-        if (assets.contains(candidate)) {
-          debugPrint(
-              'AudioService: caminho encontrado para índice $index => $candidate');
-          _audioPathCache[cacheKey] = candidate;
-          return candidate;
-        }
-      }
-    }
-
-    // Se não encontrou arquivo mp3, tenta outros formatos
-    final otherFormats = ['m4a', 'wav', 'aac'];
-    for (final format in otherFormats) {
-      final alternativeCandidates = <String>[
-        '$folder/carta_$cardNumber.$format',
-        '$folder/carta$cardNumber.$format',
-        '$folder/audio_$cardNumber.$format',
-        '$folder/$cardNumber.$format',
-      ];
-
-      if (assets != null && assets.isNotEmpty) {
-        for (final candidate in alternativeCandidates) {
-          if (assets.contains(candidate)) {
-            debugPrint(
-                'AudioService: caminho alternativo encontrado para índice $index => $candidate');
-            _audioPathCache[cacheKey] = candidate;
-            return candidate;
-          }
-        }
-      }
-    }
-
-    // Não encontrou arquivo existente
-    _audioPathCache[cacheKey] = null;
-    return null;
+    return _assetResolver.resolveAudio(folder, index);
   }
 
   // Verifica se há áudio disponível para a carta (sem tocar)
@@ -199,6 +130,7 @@ class AudioService {
     }
 
     try {
+      await initialize();
       // Para áudio se estiver tocando outro
       if (_currentlyPlayingPath != null && _currentlyPlayingPath != audioPath) {
         await _audioPlayer.stop();
