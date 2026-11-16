@@ -39,8 +39,9 @@ class _CardsPageState extends State<CardsPage> {
       _isOrg ? 'assets/logo_carta_org.png' : 'assets/logo_carta_dia.png';
   String get _indexKey => _isOrg ? 'carta_org_index' : 'carta_dia_index';
   String get _dateKey => _isOrg ? 'carta_org_date' : 'carta_dia_date';
-  String get _title =>
-      _isOrg ? 'Espiritualidade nas Organizações' : 'Cartas do Dia';
+  String get _title => _isOrg
+      ? 'Carta da organização'
+      : 'Escolha sua carta';
   String get _subtitle => _isOrg
       ? 'Mensagens para levar propósito e equilíbrio ao ambiente de trabalho.'
       : 'Escolha uma carta e receba uma mensagem para o seu dia.';
@@ -248,7 +249,7 @@ class _CardsPageState extends State<CardsPage> {
                     crossAxisCount: columns,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    childAspectRatio: 0.78,
+                    childAspectRatio: 0.64,
                   ),
                   itemCount: indexes.length,
                   itemBuilder: (context, position) {

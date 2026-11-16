@@ -266,14 +266,32 @@ class _DailyHero extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            right: -30,
-            bottom: -30,
+            right: -26,
+            bottom: -26,
             child: Opacity(
-              opacity: 0.28,
+              opacity: 0.18,
               child: Image.asset(
-                'assets/logo_carta_dia.png',
-                width: 210,
+                'assets/icon.png',
+                width: 180,
                 errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      AppColors.petrolDeep,
+                      AppColors.petrolDeep.withValues(alpha: 0.9),
+                      AppColors.petrolDeep.withValues(alpha: 0.35),
+                    ],
+                    stops: const [0.0, 0.58, 1.0],
+                  ),
+                ),
               ),
             ),
           ),
@@ -515,10 +533,14 @@ class _ExploreTile extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              title,
-              style: theme.textTheme.titleMedium,
-              maxLines: 2,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                title,
+                maxLines: 1,
+                style: theme.textTheme.titleMedium,
+              ),
             ),
           ),
         ],

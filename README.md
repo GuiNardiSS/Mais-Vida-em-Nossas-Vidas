@@ -15,6 +15,16 @@ Aplicativo mobile de espiritualidade e bem-estar, construído em Flutter, com ca
 - **Patrocinadores reais**, página de contato e textos institucionais preservados.
 - **Design system próprio**: cores, tipografia (Lora + Inter), componentes, skeletons, animações e acessibilidade.
 
+## 📸 Telas
+
+| Onboarding | Início | Cartas do Dia |
+| --- | --- | --- |
+| ![Onboarding](docs/screenshots/onboarding.png) | ![Início](docs/screenshots/home.png) | ![Cartas](docs/screenshots/cards.png) |
+
+| Início (tema escuro) |
+| --- |
+| ![Início escuro](docs/screenshots/home-dark.png) |
+
 ## 🧱 Stack
 
 | Camada | Tecnologia |

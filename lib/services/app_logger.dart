@@ -21,12 +21,21 @@ class AppLogger {
   factory AppLogger() => _instance;
   AppLogger._internal();
 
-  late Logger _logger;
+  Logger _logger = Logger(
+    printer: SimplePrinter(),
+    level: Level.info,
+  );
   File? _logFile;
   bool _isInitialized = false;
   String? _deviceId;
   String? _sessionId;
   DateTime? _sessionStart;
+
+  String get _shortDeviceId {
+    final value = _deviceId;
+    if (value == null || value.length < 8) return '—';
+    return value.substring(0, 8);
+  }
 
   // Configurações
   static const bool _enableFileLogging = true;
@@ -99,8 +108,8 @@ class AppLogger {
         'App Logger inicializado',
         data: {
           'sessionId': _sessionId,
-          'deviceId': _deviceId?.substring(0, 8),
-          'platform': Platform.operatingSystem,
+          'deviceId': _shortDeviceId,
+          'platform': kIsWeb ? 'web' : Platform.operatingSystem,
         },
       );
     } catch (e) {
@@ -160,7 +169,7 @@ class AppLogger {
       }
 
       logEntry.writeln(
-        '  Session: $_sessionId | Device: ${_deviceId?.substring(0, 8)}',
+        '  Session: $_sessionId | Device: $_shortDeviceId',
       );
       logEntry.writeln('---');
 

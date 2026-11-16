@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 
+import '../core/demo/demo_config.dart';
 import '../design/components/gold_badge.dart';
 import '../design/tokens.dart';
 import 'home.dart';
@@ -33,7 +34,8 @@ class _CartasIntroPageState extends State<CartasIntroPage> {
 
   Future<void> _checkOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
-    final done = prefs.getBool(_onboardingKey) ?? false;
+    final done = demoSkipOnboarding ||
+        (prefs.getBool(_onboardingKey) ?? false);
     if (!mounted) return;
     if (done) {
       _openHome();
@@ -280,7 +282,7 @@ class _WelcomeSlide extends StatelessWidget {
             ),
             clipBehavior: Clip.antiAlias,
             child: Image.asset(
-              'assets/logo_carta_dia.png',
+              'assets/icon.png',
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => const Icon(
                 Icons.auto_awesome,

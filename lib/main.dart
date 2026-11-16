@@ -7,6 +7,7 @@ import 'design/app_theme.dart';
 import 'features/settings/theme_controller.dart';
 import 'pages/cartas_intro.dart';
 import 'pages/assinaturas.dart';
+import 'services/app_logger.dart';
 import 'services/logging_navigator_observer.dart';
 
 void main() {
@@ -24,6 +25,9 @@ void main() {
       debugPrintStack(stackTrace: stack);
     },
   );
+
+  // Logging é opcional e nunca deve impedir a abertura do app.
+  AppLogger().initialize();
 }
 
 class MyApp extends ConsumerWidget {

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../core/demo/demo_config.dart';
 import '../design/components/app_background.dart';
 import '../design/tokens.dart';
 import '../features/settings/theme_controller.dart';
@@ -22,7 +23,7 @@ class HomeShell extends ConsumerStatefulWidget {
 }
 
 class _HomeShellState extends ConsumerState<HomeShell> {
-  int _index = 0;
+  int _index = demoInitialTab;
 
   static const _titles = [
     'Início',

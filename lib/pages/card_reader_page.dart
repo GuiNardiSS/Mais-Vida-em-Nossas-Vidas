@@ -1,11 +1,7 @@
-import 'dart:io';
-import 'dart:ui' as ui;
-
-import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../core/capture/card_capture.dart';
 import '../design/components/audio_player_bar.dart';
 import '../design/tokens.dart';
 import '../features/favorites/favorites_repository.dart';
@@ -74,10 +70,10 @@ class _CardReaderPageState extends State<CardReaderPage> {
     const message =
         'Uma mensagem do Mais Vida em Nossas Vidas para o seu dia. ✨';
     try {
-      final file = await _captureCard();
-      if (file != null) {
+      final path = await _captureCard();
+      if (path != null) {
         await SharePlus.instance.share(
-          ShareParams(files: [XFile(file.path)], text: message),
+          ShareParams(files: [XFile(path)], text: message),
         );
       } else {
         await SharePlus.instance.share(
@@ -95,19 +91,10 @@ class _CardReaderPageState extends State<CardReaderPage> {
     }
   }
 
-  Future<File?> _captureCard() async {
-    final boundary =
-        _cardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    if (boundary == null) return null;
-    final image = await boundary.toImage(pixelRatio: 2.4);
-    final data = await image.toByteData(format: ui.ImageByteFormat.png);
-    if (data == null) return null;
-    final directory = await getTemporaryDirectory();
-    final file = File(
-      '${directory.path}/carta_${widget.isOrganization ? 'org' : 'dia'}_${widget.index + 1}.png',
-    );
-    await file.writeAsBytes(data.buffer.asUint8List());
-    return file;
+  Future<String?> _captureCard() {
+    final name =
+        'carta_${widget.isOrganization ? 'org' : 'dia'}_${widget.index + 1}.png';
+    return captureCard(_cardKey, name);
   }
 
   @override
