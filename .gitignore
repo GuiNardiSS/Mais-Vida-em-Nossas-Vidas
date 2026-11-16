@@ -43,3 +43,21 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Builds e logs locais
+/build_log.txt
+*.aab
+*.apk
+
+# Assinatura Android (nunca versionar)
+android/key.properties
+*.jks
+*.keystore
+
+# Backend
+backend/node_modules/
+backend/.env
+backend/coverage/
+
+# Worktrees locais
+.worktrees/
