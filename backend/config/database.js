@@ -1,40 +1,34 @@
 import mongoose from 'mongoose';
 
-let isConnected = false;
-
-export const connectDB = async () => {
-  if (isConnected) {
-    console.log('Usando conexão existente do MongoDB');
-    return;
+/**
+ * Conecta ao MongoDB. Retorna a conexão ativa.
+ * Não engole erros: quem chama decide se a API pode subir sem banco.
+ */
+export async function connectDB(uri = process.env.MONGODB_URI, { logger } = {}) {
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
 
-  try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/maisvidaapp';
-    
-    await mongoose.connect(mongoUri);
-
-    isConnected = true;
-    console.log('✅ MongoDB conectado com sucesso');
-
-  } catch (error) {
-    console.error('❌ Erro ao conectar ao MongoDB:', error.message);
-    
-    // Se falhar, continua sem banco (modo fallback)
-    console.warn('⚠️ Modo fallback ativado - Banco de dados offline');
-    console.warn('⚠️ ATENÇÃO: Assinaturas não serão persistidas sem banco de dados!');
+  if (!uri) {
+    throw new Error('MONGODB_URI não configurada.');
   }
-};
 
-export const disconnectDB = async () => {
-  if (!isConnected) return;
+  await mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 10_000,
+  });
 
-  try {
-    await mongoose.disconnect();
-    isConnected = false;
-    console.log('MongoDB desconectado');
-  } catch (error) {
-    console.error('Erro ao desconectar do MongoDB:', error.message);
-  }
-};
+  logger?.info?.('mongodb conectado', { database: mongoose.connection.name });
+  return mongoose.connection;
+}
 
-export const isDBConnected = () => isConnected;
+export async function disconnectDB({ logger } = {}) {
+  if (mongoose.connection.readyState === 0) return;
+
+  await mongoose.disconnect();
+  logger?.info?.('mongodb desconectado');
+}
+
+/** true somente quando a conexão está realmente pronta para operar. */
+export const isDBConnected = () => mongoose.connection.readyState === 1;
+
+export default { connectDB, disconnectDB, isDBConnected };

@@ -1,67 +1,78 @@
-
-import express from 'express';
 import dotenv from 'dotenv';
-import cors from 'cors';
-import helmet from 'helmet';
-import stripeRoutes from './routes/stripe.js';
-import pixRoutes from './routes/pix.js';
-import subscriptionRoutes from './routes/subscription.js';
-import { connectDB } from './config/database.js';
-import { generalLimiter } from './middleware/auth.js';
+
+import { createApp } from './app.js';
+import { connectDB, disconnectDB } from './config/database.js';
+import { loadEnv } from './config/env.js';
+import { logger } from './utils/logger.js';
 
 dotenv.config();
-const app = express();
 
-// Conecta ao MongoDB
-connectDB();
+async function main() {
+  const env = loadEnv();
+  logger.setLevel(env.LOG_LEVEL);
+  const log = logger.child({ service: 'maisvida-backend', env: env.NODE_ENV });
 
-// Segurança - Helmet protege contra vulnerabilidades comuns
-app.use(helmet());
+  if (env.JWT_SECRET_IS_FALLBACK) {
+    log.warn('JWT_SECRET não definido; usando segredo de desenvolvimento.');
+  }
+  if (env.CORS_ORIGIN.includes('*') && env.NODE_ENV === 'production') {
+    log.warn('CORS_ORIGIN=* em produção. Configure uma allowlist explícita.');
+  }
 
-// CORS configurado
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+  try {
+    await connectDB(env.MONGODB_URI, { logger: log });
+  } catch (error) {
+    log.error('falha ao conectar ao MongoDB', { err: error });
+    if (env.NODE_ENV === 'production') {
+      process.exitCode = 1;
+      return;
+    }
+    log.warn(
+      'API continuará em modo degradado; endpoints que dependem do banco responderão 503 (DB_OFFLINE).'
+    );
+  }
 
-// Parse JSON
-app.use(express.json());
+  const app = createApp({ env });
 
-// Rate limiting geral
-app.use(generalLimiter);
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
+  const server = app.listen(env.PORT, () => {
+    log.info('API online', {
+      port: env.PORT,
+      docs: env.DOCS_ENABLED ? '/docs' : 'disabled',
+      pixProvider: env.PIX_PROVIDER,
+      demoMode: env.DEMO_MODE,
+    });
   });
-});
 
-// Rotas
-app.use('/pagamento', stripeRoutes);
-app.use('/pix', pixRoutes);
-app.use('/subscription', subscriptionRoutes);
-
-// Rota 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Rota não encontrada' });
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Erro:', err);
-  res.status(500).json({ 
-    error: 'Erro interno do servidor',
-    details: process.env.NODE_ENV === 'development' ? err.message : undefined
+  server.on('error', (error) => {
+    log.error('erro no servidor HTTP', { err: error });
+    process.exitCode = 1;
   });
-});
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`✅ API rodando na porta ${port}`);
-  console.log(`🔒 Segurança: Helmet + Rate Limiting ativados`);
-  console.log(`📊 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  const shutdown = (signal) => {
+    log.info('encerrando servidor', { signal });
+    server.close(async () => {
+      try {
+        await disconnectDB({ logger: log });
+      } finally {
+        process.exit(0);
+      }
+    });
+
+    setTimeout(() => process.exit(1), 10_000).unref();
+  };
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+}
+
+main().catch((error) => {
+  console.error(
+    JSON.stringify({
+      level: 'error',
+      time: new Date().toISOString(),
+      msg: 'falha ao iniciar a API',
+      err: { name: error.name, message: error.message },
+    })
+  );
+  process.exitCode = 1;
 });

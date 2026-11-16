@@ -4,11 +4,12 @@ import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/assets/asset_resolver.dart';
-import '../design/components/audio_player_bar.dart';
 import '../design/components/gold_badge.dart';
 import '../design/tokens.dart';
+import '../features/favorites/favorites_repository.dart';
 import '../services/subscription_service.dart';
 import '../services/usage_restriction_service.dart';
+import 'card_reader_page.dart';
 
 class CardsPage extends StatefulWidget {
   const CardsPage({super.key, required this.isOrganization});
@@ -26,6 +27,8 @@ class _CardsPageState extends State<CardsPage> {
   bool _isPremium = false;
   int _usedToday = 0;
   bool _loading = true;
+  bool _onlyFavorites = false;
+  Set<int> _favorites = <int>{};
   Timer? _ticker;
   Duration _untilTomorrow = Duration.zero;
 
@@ -56,6 +59,7 @@ class _CardsPageState extends State<CardsPage> {
     final used = _isOrg
         ? await UsageRestrictionService.getCartasOrganizacaoUsedToday()
         : await UsageRestrictionService.getCartasDiaUsedToday();
+    final favorites = await FavoritesRepository.load(isOrganization: _isOrg);
 
     int? selected;
     if (prefs.getString(_dateKey) == today) {
@@ -67,6 +71,7 @@ class _CardsPageState extends State<CardsPage> {
       _isPremium = isPremium;
       _usedToday = used;
       _selected = selected;
+      _favorites = favorites;
       _loading = false;
     });
   }
@@ -164,6 +169,9 @@ class _CardsPageState extends State<CardsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hasReachedLimit = !_isPremium && _usedToday >= 1;
+    final indexes = _onlyFavorites
+        ? (_favorites.toList()..sort())
+        : List<int>.generate(50, (index) => index);
 
     return RefreshIndicator(
       onRefresh: _load,
@@ -204,12 +212,30 @@ class _CardsPageState extends State<CardsPage> {
               isPremium: _isPremium,
               remaining: _isPremium ? null : 1 - _usedToday,
             ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: 8,
+            children: [
+              ChoiceChip(
+                label: const Text('Todas'),
+                selected: !_onlyFavorites,
+                onSelected: (_) => setState(() => _onlyFavorites = false),
+              ),
+              ChoiceChip(
+                label: Text('Favoritas (${_favorites.length})'),
+                selected: _onlyFavorites,
+                onSelected: (_) => setState(() => _onlyFavorites = true),
+              ),
+            ],
+          ),
           const SizedBox(height: AppSpacing.lg),
           if (_loading)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 48),
               child: Center(child: CircularProgressIndicator()),
             )
+          else if (indexes.isEmpty)
+            _FavoritesEmpty()
           else
             LayoutBuilder(
               builder: (context, constraints) {
@@ -224,8 +250,9 @@ class _CardsPageState extends State<CardsPage> {
                     mainAxisSpacing: 10,
                     childAspectRatio: 0.78,
                   ),
-                  itemCount: 50,
-                  itemBuilder: (context, index) {
+                  itemCount: indexes.length,
+                  itemBuilder: (context, position) {
+                    final index = indexes[position];
                     final selected = _selected == index;
                     final locked = hasReachedLimit && !selected;
                     return _CardTile(
@@ -233,6 +260,7 @@ class _CardsPageState extends State<CardsPage> {
                       logo: _logo,
                       selected: selected,
                       locked: locked,
+                      isFavorite: _favorites.contains(index),
                       onTap: () => _select(index),
                     );
                   },
@@ -318,12 +346,42 @@ class _LimitNotice extends StatelessWidget {
   }
 }
 
+class _FavoritesEmpty extends StatelessWidget {
+  const _FavoritesEmpty();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+      child: Column(
+        children: [
+          Icon(Icons.favorite_border,
+              size: 44, color: theme.colorScheme.outline),
+          const SizedBox(height: 12),
+          Text(
+            'Nenhuma carta favoritada ainda',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Abra uma carta e toque no coração para guardar aqui.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CardTile extends StatelessWidget {
   const _CardTile({
     required this.index,
     required this.logo,
     required this.selected,
     required this.locked,
+    required this.isFavorite,
     required this.onTap,
   });
 
@@ -331,6 +389,7 @@ class _CardTile extends StatelessWidget {
   final String logo;
   final bool selected;
   final bool locked;
+  final bool isFavorite;
   final VoidCallback onTap;
 
   @override
@@ -409,91 +468,19 @@ class _CardTile extends StatelessWidget {
                   child:
                       Icon(Icons.lock_outline, size: 16, color: Colors.white70),
                 ),
+              if (isFavorite)
+                const Positioned(
+                  right: 6,
+                  bottom: 6,
+                  child: Icon(
+                    Icons.favorite,
+                    size: 14,
+                    color: AppColors.goldBright,
+                  ),
+                ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class CardReaderPage extends StatelessWidget {
-  const CardReaderPage({
-    super.key,
-    required this.index,
-    required this.isOrganization,
-    required this.assetPath,
-  });
-
-  final int index;
-  final bool isOrganization;
-  final String? assetPath;
-
-  @override
-  Widget build(BuildContext context) {
-    final title =
-        isOrganization ? 'Carta Org ${index + 1}' : 'Carta ${index + 1}';
-    return Scaffold(
-      backgroundColor: AppColors.night,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        title: Text(title),
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.close_rounded),
-        ),
-      ),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                child: assetPath == null
-                    ? const _MissingCard()
-                    : InteractiveViewer(
-                        minScale: 1,
-                        maxScale: 4,
-                        child: Center(
-                          child: Image.asset(assetPath!, fit: BoxFit.contain),
-                        ),
-                      ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: AudioPlayerBar(
-                cardIndex: index,
-                isOrganizacao: isOrganization,
-                title: title,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MissingCard extends StatelessWidget {
-  const _MissingCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.image_not_supported_outlined,
-              color: Colors.white54, size: 48),
-          SizedBox(height: 12),
-          Text(
-            'Imagem da carta não encontrada.',
-            style: TextStyle(color: Colors.white70),
-          ),
-        ],
       ),
     );
   }

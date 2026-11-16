@@ -1,5 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../design/components/gold_badge.dart';
+import '../design/components/soft_card.dart';
+import '../design/tokens.dart';
 import '../widgets/video_popup_player.dart';
 import '../services/usage_restriction_service.dart';
 
@@ -130,64 +133,14 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
     return 'assets/conteudo/$simple.png';
   }
 
-  IconData _getContentIcon(Map<String, dynamic> c) {
-    final tipo = c['tipo'] ?? 'video';
-    switch (tipo) {
-      case 'video':
-        return Icons.play_circle_filled;
-      case 'text':
-        return Icons.article;
-      default:
-        return Icons.play_circle_filled;
-    }
-  }
-
-  Color _getContentColor(Map<String, dynamic> c) {
-    final tipo = c['tipo'] ?? 'video';
-    switch (tipo) {
-      case 'video':
-        return const Color(0xFFFF0000); // Vermelho para vídeo
-      case 'text':
-        return const Color(0xFF0b4c52); // Azul escuro para texto
-      default:
-        return const Color(0xFF0b4c52);
-    }
-  }
-
-  Widget _buildPlaceholder(IconData icon, String tipo) {
-    return Container(
-      color: _getContentColor({'tipo': tipo}),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 64,
-            color: Colors.white70,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            tipo == 'video' ? 'Vídeo\nDisponível' : 'Leitura\nDisponível',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _showContentDialog(Map<String, dynamic> c) async {
     // Verifica se é conteúdo "Em Breve"
     if (c['emBreve'] == true) {
       showDialog(
         context: context,
         builder: (context) => const AlertDialog(
-          title: Text('Aviso', style: TextStyle(color: Colors.black)),
-          content: Text('EM BREVE', style: TextStyle(color: Colors.black)),
+          title: Text('Aviso'),
+          content: Text('EM BREVE'),
         ),
       );
       return;
@@ -328,6 +281,7 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
 
   // Mostra popup com texto completo
   void _showTextPopup(Map<String, dynamic> c) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -341,7 +295,7 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
             maxWidth: MediaQuery.of(context).size.width * 0.95,
           ),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -392,11 +346,7 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
                   padding: const EdgeInsets.all(24),
                   child: Text(
                     c['textoCompleto']?.toString() ?? c['descricao'] ?? '',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.8,
-                      color: Colors.black87,
-                    ),
+                    style: theme.textTheme.bodyLarge!.copyWith(height: 1.8),
                   ),
                 ),
               ),
@@ -407,8 +357,6 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0b4c52),
-                    foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 48),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -427,78 +375,18 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
   @override
   Widget build(BuildContext context) {
     final list = ListView.builder(
-      padding: EdgeInsets.fromLTRB(16, widget.embedded ? 4 : 16, 16, 32),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.page,
+        widget.embedded ? 4 : AppSpacing.md,
+        AppSpacing.page,
+        AppSpacing.xxl,
+      ),
       itemCount: conteudos.length,
       itemBuilder: (context, index) {
         final c = conteudos[index];
-        final imagePath = _getContentImagePath(c);
-        final tipo = c['tipo'] ?? 'video';
-        final contentIcon = _getContentIcon(c);
-        final contentColor = _getContentColor(c);
-        final temImagem = tipo == 'text' && imagePath != null;
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () => _showContentDialog(c),
-              borderRadius: BorderRadius.circular(16),
-              child: temImagem
-                  ? Image.asset(
-                      imagePath,
-                      width: double.infinity,
-                      fit: BoxFit.fitWidth,
-                      cacheWidth: 800,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildPlaceholder(contentIcon, tipo),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(contentIcon, size: 20, color: contentColor),
-                              const SizedBox(width: 8),
-                              Text(
-                                tipo == 'video' ? 'Vídeo' : 'Leitura',
-                                style: TextStyle(
-                                  color: contentColor,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            c['titulo'] ?? '',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              color: Color(0xFF0b4c52),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            c['descricao'] ?? '',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.black87,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-            ),
-          ),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          child: _buildContentCard(context, c),
         );
       },
     );
@@ -531,5 +419,155 @@ Esta não é apenas a história de uma menina, mas um espelho para todos os cora
         Expanded(child: list),
       ],
     );
+  }
+
+  Widget _buildContentCard(BuildContext context, Map<String, dynamic> c) {
+    final theme = Theme.of(context);
+    final tipo = c['tipo'] ?? 'video';
+    final isVideo = tipo == 'video';
+    final premium = c['premiumOnly'] == true;
+    final comingSoon = c['emBreve'] == true;
+    final thumbnail = isVideo ? _thumbnailFor(c) : _getContentImagePath(c);
+
+    return SoftCard(
+      padding: EdgeInsets.zero,
+      onTap: () => _showContentDialog(c),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppRadii.lg),
+            ),
+            child: SizedBox(
+              height: 168,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (thumbnail != null)
+                    Image.asset(
+                      thumbnail,
+                      fit: BoxFit.cover,
+                      cacheWidth: 900,
+                      errorBuilder: (_, __, ___) => _placeholder(),
+                    )
+                  else
+                    _placeholder(),
+                  if (isVideo)
+                    Container(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      child: const Center(
+                        child: Icon(
+                          Icons.play_circle_fill,
+                          color: Colors.white,
+                          size: 54,
+                        ),
+                      ),
+                    ),
+                  Positioned(
+                    left: 10,
+                    top: 10,
+                    child: GoldBadge(
+                      label: isVideo ? 'Vídeo' : 'Leitura',
+                      icon: isVideo
+                          ? Icons.play_circle_outline
+                          : Icons.menu_book_outlined,
+                      dark: true,
+                    ),
+                  ),
+                  if (premium)
+                    const Positioned(
+                      right: 10,
+                      top: 10,
+                      child: GoldBadge(
+                        label: 'Premium',
+                        icon: Icons.workspace_premium,
+                        dark: true,
+                      ),
+                    ),
+                  if (comingSoon)
+                    const Positioned(
+                      right: 10,
+                      bottom: 10,
+                      child: GoldBadge(
+                        label: 'Em breve',
+                        icon: Icons.schedule,
+                        dark: true,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  c['titulo']?.toString() ?? '',
+                  style: theme.textTheme.headlineMedium,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  c['descricao']?.toString() ?? '',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Text(
+                      isVideo ? 'Assistir' : 'Ler',
+                      style: theme.textTheme.labelLarge!.copyWith(
+                        color: AppColors.gold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.arrow_forward,
+                      size: 16,
+                      color: AppColors.gold,
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.chevron_right,
+                      color: theme.colorScheme.outline,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.petrolDeep, AppColors.petrol],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.auto_awesome,
+          color: Colors.white.withValues(alpha: 0.6),
+          size: 40,
+        ),
+      ),
+    );
+  }
+
+  String? _thumbnailFor(Map<String, dynamic> c) {
+    final path = c['videoPath']?.toString() ?? '';
+    if (path.contains('video1')) return 'assets/conteudo/video1_thumb.png';
+    if (path.contains('video2')) return 'assets/conteudo/video2_thumb.png';
+    if (path.contains('video3')) return 'assets/conteudo/video3_thumb.png';
+    return null;
   }
 }

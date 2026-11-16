@@ -1,327 +1,328 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../utils/responsive_helper.dart';
+
+import '../design/components/app_background.dart';
+import '../design/components/gold_badge.dart';
+import '../design/components/soft_card.dart';
+import '../design/tokens.dart';
 
 class EspiritualidadeDiaPage extends StatelessWidget {
   const EspiritualidadeDiaPage({super.key});
 
+  static const List<Map<String, String>> _parceiros = [
+    {
+      'nome': 'Bele Beauty Store',
+      'descricao':
+          'A Bele Beauty é uma empresa espiritualizada porque nasceu com um propósito que vai além da estética: cuidar da beleza que começa na alma e transborda para o mundo. Cada peça, cada criação e cada atendimento carrega intenção, presença e energia boa — porque acreditamos que beleza verdadeira é aquela que eleva, conecta e inspira.',
+      'whatsapp': 'http://wa.me/5548998171948',
+      'instagram':
+          'https://www.instagram.com/belebeautystore?igsh=YWFoOHF0OWU0djkw',
+      'site': 'http://www.belebeauty.com.br/',
+      'contato': 'Site: www.belebeauty.com.br',
+    },
+    {
+      'nome': 'Reffinatto Brazil',
+      'descricao':
+          'Na Reffinatto Brazil, o atendimento humanizado é o coração que transforma projetos em lares e móveis em experiências de bem-estar.',
+      'whatsapp': 'http://wa.me/554891005888',
+      'instagram':
+          'https://www.instagram.com/reffinattobrazil?igsh=MW9yb3A4NzFpc2pm',
+      'site': 'https://share.google/gx3lfudnBuqC5IhJC',
+      'contato': 'Instagram: @reffinattobrazil',
+    },
+    {
+      'nome': 'Marangoni Marcas',
+      'descricao':
+          'Uma empresa que preza por valores, propósito e conexões humanas genuínas, que vão além do lucro financeiro, trazendo uma cultura que envolve o equilíbrio das emoções.',
+      'whatsapp': 'https://wa.me/message/D3JYFXNU6NTTK1',
+      'instagram': 'https://www.instagram.com/marangonimarcas',
+      'site': 'http://www.marangonimarcas.com.br/',
+      'contato': 'Site: www.marangonimarcas.com.br',
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> parceiros = const [
-      {
-        'nome': 'Bele Beauty Store',
-        'descricao':
-            'A Bele Beauty é uma empresa espiritualizada porque nasceu com um propósito que vai além da estética: cuidar da beleza que começa na alma e transborda para o mundo. Cada peça, cada criação e cada atendimento carrega intenção, presença e energia boa — porque acreditamos que beleza verdadeira é aquela que eleva, conecta e inspira.',
-        'whatsapp': 'http://wa.me/5548998171948',
-        'instagram':
-            'https://www.instagram.com/belebeautystore?igsh=YWFoOHF0OWU0djkw',
-        'site': 'http://www.belebeauty.com.br/',
-        'contato': 'Site: www.belebeauty.com.br',
-      },
-      {
-        'nome': 'Reffinatto Brazil',
-        'descricao':
-            'Na Reffinatto Brazil, o atendimento humanizado é o coração que transforma projetos em lares e móveis em experiências de bem-estar.',
-        'whatsapp': 'http://wa.me/554891005888',
-        'instagram':
-            'https://www.instagram.com/reffinattobrazil?igsh=MW9yb3A4NzFpc2pm',
-        'site': 'https://share.google/gx3lfudnBuqC5IhJC',
-        'contato': 'Instagram: @reffinattobrazil',
-      },
-      {
-        'nome': 'Marangoni Marcas',
-        'descricao':
-            'Uma empresa que preza por valores, propósito e conexões humanas genuínas, que vão além do lucro financeiro, trazendo uma cultura que envolve o equilíbrio das emoções.',
-        'whatsapp': 'https://wa.me/message/D3JYFXNU6NTTK1',
-        'instagram': 'https://www.instagram.com/marangonimarcas',
-        'site': 'http://www.marangonimarcas.com.br/',
-        'contato': 'Site: www.marangonimarcas.com.br',
-      },
-    ];
+    final theme = Theme.of(context);
+
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 600;
-          final crossAxisCount = ResponsiveHelper.getGridColumns(
-            context,
-            mobile: 1,
-            tablet: 2,
-            desktop: 3,
-          );
-          final padding = ResponsiveHelper.getPadding(context);
-          final fontSize = ResponsiveHelper.getFontSize(context,
-              mobile: 22, tablet: 24, desktop: 26);
-          final gridSpacing = ResponsiveHelper.getGridSpacing(context);
-
-          return CustomScrollView(
-            slivers: [
-              SliverPadding(
-                padding: EdgeInsets.all(padding),
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Patrocinadores',
-                        style: TextStyle(
-                            fontSize: fontSize, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: padding * 0.75),
-                    ],
-                  ),
-                ),
+      appBar: AppBar(title: const Text('Patrocinadores')),
+      body: AppBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.xs,
+            AppSpacing.page,
+            AppSpacing.xxl,
+          ),
+          children: [
+            Text(
+              'Marcas que caminham\ncom o propósito',
+              style: theme.textTheme.displayMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Empresas que acreditam na espiritualidade como parte da vida e dos negócios.',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            for (final parceiro in _parceiros) ...[
+              _PartnerCard(
+                parceiro: parceiro,
+                onOpen: () => _mostrarDetalhes(context, parceiro),
               ),
-              SliverPadding(
-                padding: EdgeInsets.symmetric(horizontal: padding),
-                sliver: SliverGrid(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    mainAxisSpacing: gridSpacing,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: isWide ? 2.8 : 2.2,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final p = parceiros[index];
-                      final imgPath = _parceiroImagePath(p['nome']!);
-
-                      // Configuração específica por parceiro
-                      final isBele = p['nome'] == 'Bele Beauty Store';
-                      final isMarangoni = p['nome'] == 'Marangoni Marcas';
-                      final boxFit = (isBele || isMarangoni)
-                          ? BoxFit.cover
-                          : BoxFit.contain;
-                      final bgColor = isBele
-                          ? const Color(0xFF0b4c52)
-                          : isMarangoni
-                              ? Colors.white
-                              : Colors.white;
-                      final padding = (isBele || isMarangoni)
-                          ? EdgeInsets.zero
-                          : const EdgeInsets.all(8);
-
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withValues(alpha: 0.1),
-                              spreadRadius: 1,
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: () => _mostrarDetalhes(context, p),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: isWide ? 140 : 120,
-                                height: double.infinity,
-                                color: bgColor,
-                                padding: padding,
-                                child: Image.asset(
-                                  imgPath,
-                                  fit: boxFit,
-                                  cacheWidth:
-                                      400, // Otimização: Reduz uso de memória
-                                  errorBuilder: (ctx, e, st) => const Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.add_photo_alternate_outlined,
-                                            color: Colors.white70, size: 32),
-                                        SizedBox(height: 4),
-                                        Text(
-                                          'Imagem',
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        p['nome']!,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        p['descricao']!,
-                                        maxLines: 3,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Align(
-                                        alignment: Alignment.centerRight,
-                                        child: ElevatedButton.icon(
-                                          onPressed: () =>
-                                              _abrirContato(p['contato'] ?? ''),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                const Color(0xFF0b4c52),
-                                            foregroundColor: Colors.white,
-                                            shape: const StadiumBorder(),
-                                          ),
-                                          icon: Icon(_iconForContato(
-                                              p['contato'] ?? '')),
-                                          label: const Text('Visitar'),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                    childCount: parceiros.length,
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              const SizedBox(height: 12),
             ],
-          );
-        },
+            const SizedBox(height: AppSpacing.sm),
+            SoftCard(
+              color: AppColors.petrol,
+              borderColor: Colors.transparent,
+              child: Row(
+                children: [
+                  const Icon(Icons.handshake_outlined,
+                      color: AppColors.goldBright, size: 26),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Quer caminhar com o projeto? Fale com a Helô pelo canal de contato.',
+                      style: theme.textTheme.bodyMedium!.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PartnerCard extends StatelessWidget {
+  const _PartnerCard({required this.parceiro, required this.onOpen});
+
+  final Map<String, String> parceiro;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final nome = parceiro['nome'] ?? '';
+    return SoftCard(
+      padding: EdgeInsets.zero,
+      onTap: onOpen,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppRadii.lg),
+            ),
+            child: Container(
+              height: 130,
+              width: double.infinity,
+              color: Colors.white,
+              padding: const EdgeInsets.all(20),
+              child: Image.asset(
+                _parceiroImagePath(nome),
+                fit: BoxFit.contain,
+                cacheWidth: 600,
+                errorBuilder: (_, __, ___) => const Center(
+                  child: Icon(Icons.storefront_outlined,
+                      color: AppColors.petrol, size: 40),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(nome, style: theme.textTheme.headlineMedium),
+                    ),
+                    const GoldBadge(label: 'Parceiro', icon: Icons.handshake),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  parceiro['descricao'] ?? '',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    if (parceiro['whatsapp'] != null)
+                      _MiniAction(
+                        icon: Icons.chat_bubble_outline,
+                        label: 'WhatsApp',
+                        onTap: () => _abrirLink(parceiro['whatsapp']!),
+                      ),
+                    if (parceiro['instagram'] != null)
+                      _MiniAction(
+                        icon: Icons.camera_alt_outlined,
+                        label: 'Instagram',
+                        onTap: () => _abrirLink(parceiro['instagram']!),
+                      ),
+                    if (parceiro['site'] != null)
+                      _MiniAction(
+                        icon: Icons.public,
+                        label: 'Site',
+                        onTap: () => _abrirLink(parceiro['site']!),
+                      ),
+                    const Spacer(),
+                    Icon(
+                      Icons.chevron_right,
+                      color: theme.colorScheme.outline,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniAction extends StatelessWidget {
+  const _MiniAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: AppColors.gold),
+            const SizedBox(width: 4),
+            Text(label, style: Theme.of(context).textTheme.labelSmall),
+          ],
+        ),
       ),
     );
   }
 }
 
 void _mostrarDetalhes(BuildContext context, Map<String, String> parceiro) {
-  showDialog(
+  final theme = Theme.of(context);
+  showDialog<void>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(
-        parceiro['nome'] ?? '',
-        style: const TextStyle(color: Colors.black),
+    builder: (ctx) => Dialog(
+      insetPadding: const EdgeInsets.all(20),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.lg),
       ),
-      content: SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 520,
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              parceiro['descricao'] ?? '',
-              style: const TextStyle(color: Colors.black, height: 1.5),
-            ),
-            const SizedBox(height: 16),
-            // Botões de redes sociais e contato
-            if (parceiro['whatsapp'] != null ||
-                parceiro['instagram'] != null ||
-                parceiro['site'] != null) ...[
-              const Divider(),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 8, 16),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.petrolDeep, AppColors.petrol],
+                ),
+              ),
+              child: Row(
                 children: [
-                  if (parceiro['whatsapp'] != null)
-                    ElevatedButton.icon(
-                      onPressed: () => _abrirLink(parceiro['whatsapp']!),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF25D366),
-                        foregroundColor: Colors.white,
+                  const Icon(Icons.handshake_outlined,
+                      color: AppColors.goldBright, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      parceiro['nome'] ?? '',
+                      style: theme.textTheme.headlineMedium!.copyWith(
+                        color: Colors.white,
                       ),
-                      icon: const Icon(Icons.phone, size: 18),
-                      label: const Text('WhatsApp'),
                     ),
-                  if (parceiro['instagram'] != null)
-                    ElevatedButton.icon(
-                      onPressed: () => _abrirLink(parceiro['instagram']!),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE4405F),
-                        foregroundColor: Colors.white,
-                      ),
-                      icon: const Icon(Icons.camera_alt, size: 18),
-                      label: const Text('Instagram'),
-                    ),
-                  if (parceiro['site'] != null)
-                    ElevatedButton.icon(
-                      onPressed: () => _abrirLink(parceiro['site']!),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0b4c52),
-                        foregroundColor: Colors.white,
-                      ),
-                      icon: const Icon(Icons.public, size: 18),
-                      label: const Text('Site'),
-                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                  ),
                 ],
               ),
-            ] else ...[
-              const SizedBox(height: 12),
-              InkWell(
-                onTap: () => _abrirContato(parceiro['contato'] ?? ''),
-                child: Text(
-                  parceiro['contato'] ?? '',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Theme.of(ctx).colorScheme.primary,
-                    decoration: TextDecoration.underline,
+            ),
+            Flexible(
+              child: Container(
+                color: theme.colorScheme.surface,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        parceiro['descricao'] ?? '',
+                        style: theme.textTheme.bodyLarge!.copyWith(height: 1.6),
+                      ),
+                      const SizedBox(height: 18),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          if (parceiro['whatsapp'] != null)
+                            FilledButton.icon(
+                              onPressed: () =>
+                                  _abrirLink(parceiro['whatsapp']!),
+                              icon: const Icon(Icons.chat_bubble_outline,
+                                  size: 18),
+                              label: const Text('WhatsApp'),
+                            ),
+                          if (parceiro['instagram'] != null)
+                            OutlinedButton.icon(
+                              onPressed: () =>
+                                  _abrirLink(parceiro['instagram']!),
+                              icon: const Icon(Icons.camera_alt_outlined,
+                                  size: 18),
+                              label: const Text('Instagram'),
+                            ),
+                          if (parceiro['site'] != null)
+                            OutlinedButton.icon(
+                              onPressed: () => _abrirLink(parceiro['site']!),
+                              icon: const Icon(Icons.public, size: 18),
+                              label: const Text('Site'),
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
+            ),
           ],
         ),
       ),
-      actions: [
-        if (parceiro['whatsapp'] == null &&
-            parceiro['instagram'] == null &&
-            parceiro['site'] == null)
-          TextButton(
-            onPressed: () async {
-              final contato = parceiro['contato'] ?? '';
-              await Clipboard.setData(ClipboardData(text: contato));
-              if (context.mounted) {
-                Navigator.of(ctx).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Contato copiado')),
-                );
-              }
-            },
-            child: const Text(
-              'Copiar contato',
-              style: TextStyle(color: Colors.black),
-            ),
-          ),
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text(
-            'Fechar',
-            style: TextStyle(color: Colors.black),
-          ),
-        ),
-      ],
     ),
   );
 }
 
 String _parceiroImagePath(String nome) {
-  // Converte nome do parceiro para nome do arquivo de imagem
-  // Exemplo: "YogaZen" -> "yogazen.png", "Espaço Luz Divina" -> "espaco_luz_divina.png"
   final simple = nome
       .toLowerCase()
       .replaceAll('ç', 'c')
@@ -336,39 +337,8 @@ String _parceiroImagePath(String nome) {
       .replaceAll(RegExp(r'_+'), '_')
       .replaceAll(RegExp(r'^_|_$'), '');
 
-  // Marangoni usa .jpg, outros usam .png
   final extension = simple == 'marangoni_marcas' ? 'jpg' : 'png';
   return 'assets/parceiros/$simple.$extension';
-}
-
-Future<void> _abrirContato(String contato) async {
-  // Aceita formatos: "Instagram: @user", "YouTube: canal", "Site: example.com"
-  final c = contato.trim();
-  Uri? uri;
-  if (c.toLowerCase().startsWith('instagram')) {
-    final handle = RegExp(r'@([A-Za-z0-9_.]+)').firstMatch(c)?.group(1);
-    if (handle != null) {
-      uri = Uri.parse('https://www.instagram.com/$handle');
-    }
-  } else if (c.toLowerCase().startsWith('youtube')) {
-    final term = c.split(':').length > 1 ? c.split(':')[1].trim() : '';
-    if (term.isNotEmpty) {
-      // abre busca do YouTube para o termo
-      uri = Uri.parse(
-          'https://www.youtube.com/results?search_query=${Uri.encodeComponent(term)}');
-    }
-  } else if (c.toLowerCase().startsWith('site')) {
-    final url = c.split(':').length > 1 ? c.split(':')[1].trim() : '';
-    if (url.isNotEmpty) {
-      final normalized = url.startsWith('http') ? url : 'https://$url';
-      uri = Uri.parse(normalized);
-    }
-  }
-  uri ??=
-      Uri.parse('https://www.google.com/search?q=${Uri.encodeComponent(c)}');
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
 }
 
 Future<void> _abrirLink(String url) async {
@@ -377,15 +347,7 @@ Future<void> _abrirLink(String url) async {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
-  } catch (e) {
-    // Ignora erro silenciosamente
+  } catch (_) {
+    // Ignora falhas de abertura de link externo.
   }
-}
-
-IconData _iconForContato(String contato) {
-  final c = contato.toLowerCase();
-  if (c.startsWith('instagram')) return Icons.camera_alt_outlined;
-  if (c.startsWith('youtube')) return Icons.ondemand_video_outlined;
-  if (c.startsWith('site')) return Icons.public;
-  return Icons.open_in_new;
 }

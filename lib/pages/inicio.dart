@@ -1,5 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../design/components/app_background.dart';
+import '../design/tokens.dart';
+
 class ConhecaMaisPage extends StatelessWidget {
   const ConhecaMaisPage({super.key});
 
@@ -359,134 +362,211 @@ O amor, em sua expressão plena – amor-próprio, amor ao próximo e amor a Deu
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFF5F5F0), // Fundo da página levemente off-white
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 9 / 11, // Proporção retangular (mobile card)
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
+      appBar: AppBar(title: const Text('Conheça Mais')),
+      body: AppBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.xs,
+            AppSpacing.page,
+            AppSpacing.xxl,
           ),
-          itemCount: informacoes.length,
-          itemBuilder: (context, index) {
-            final info = informacoes[index];
-            return GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => Dialog(
-                    backgroundColor: Colors.transparent,
-                    child: Container(
-                      constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.9,
-                        maxHeight: MediaQuery.of(context).size.height * 0.8,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Cabeçalho com título e botão fechar
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF0b4c52), // Azul petróleo
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(12),
-                                topRight: Radius.circular(12),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    info['titulo'] ?? '',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  icon: const Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Conteúdo de texto com scroll
-                          Expanded(
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(12),
-                                  bottomRight: Radius.circular(12),
-                                ),
-                              ),
-                              child: SingleChildScrollView(
-                                padding: const EdgeInsets.all(20),
-                                child: Text(
-                                  info['conteudo'] ?? '',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    height: 1.6,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+          children: [
+            Text(
+              'Temas para a sua\njornada',
+              style: theme.textTheme.displayMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Toque em um tema para ler a reflexão completa.',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.78,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemCount: informacoes.length,
+              itemBuilder: (context, index) {
+                final info = informacoes[index];
+                return _ThemeCard(
+                  index: index,
+                  title: info['titulo'] ?? '',
+                  onTap: () => _showTheme(context, info),
                 );
               },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFFDD0), // Fundo creme claro
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                  image: const DecorationImage(
-                    image: AssetImage('assets/logo_conheca_mais.png'),
-                    fit: BoxFit
-                        .fill, // Garante que a arte preencha todo o card sem cortes
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTheme(BuildContext context, Map<String, String> info) {
+    final theme = Theme.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => Dialog(
+        insetPadding: const EdgeInsets.all(20),
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 560,
+            maxHeight: MediaQuery.of(context).size.height * 0.82,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 16, 8, 16),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.petrolDeep, AppColors.petrol],
                   ),
                 ),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
+                child: Row(
+                  children: [
+                    const Icon(Icons.spa,
+                        color: AppColors.goldBright, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
                       child: Text(
                         info['titulo'] ?? '',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Color(0xFF0b4c52), // Azul petróleo
-                          letterSpacing: 0.5,
+                        style: theme.textTheme.headlineMedium!.copyWith(
+                          color: Colors.white,
                         ),
-                        textAlign: TextAlign.center,
                       ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      icon: const Icon(Icons.close, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: Container(
+                  color: theme.colorScheme.surface,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      info['conteudo'] ?? '',
+                      style: theme.textTheme.bodyLarge!.copyWith(height: 1.7),
                     ),
                   ),
                 ),
               ),
-            );
-          },
+              Container(
+                width: double.infinity,
+                color: theme.colorScheme.surface,
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                child: FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('Fechar'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeCard extends StatelessWidget {
+  const _ThemeCard({
+    required this.index,
+    required this.title,
+    required this.onTap,
+  });
+
+  final int index;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadii.lg),
+            border: Border.all(
+              color: AppColors.gold.withValues(alpha: 0.32),
+            ),
+            image: const DecorationImage(
+              image: AssetImage('assets/logo_conheca_mais.png'),
+              fit: BoxFit.cover,
+            ),
+            boxShadow: AppShadows.soft(theme.brightness),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      AppColors.petrolDeep.withValues(alpha: 0.88),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: AppColors.goldBright,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    '${index + 1}',
+                    style: const TextStyle(
+                      color: AppColors.petrolDeep,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 12,
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  style: theme.textTheme.titleMedium!.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
