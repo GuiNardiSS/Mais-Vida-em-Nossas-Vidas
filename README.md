@@ -1,5 +1,7 @@
 # Mais Vida em Nossas Vidas
 
+[![CI](https://github.com/GuiNardiSS/Mais-Vida-em-Nossas-Vidas/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GuiNardiSS/Mais-Vida-em-Nossas-Vidas/actions/workflows/ci.yml)
+
 Aplicativo mobile de espiritualidade e bem-estar, construído em Flutter, com cartas diárias ilustradas, áudios narrados, conteúdos exclusivos e uma experiência premium **em modo demonstração**.
 
 > Projeto de portfólio. Não é publicado em loja e não processa pagamentos reais. Toda a experiência funciona offline.
@@ -82,9 +84,9 @@ cd backend && npm test
 
 Cobertura atual:
 
-- `AssetResolver`: resolução de imagens/áudios sem `AssetManifest.json`.
-- `BrCodeGenerator`: payload PIX, sanitização e CRC16.
-- Backend: PIX, ativação idempotente, validação, expiração e cancelamento.
+- **15 testes no app**: `AssetResolver`, `BrCodeGenerator` e favoritos.
+- **65 testes no backend**: PIX, ativação idempotente, validação, expiração, cancelamento, webhook e rate limit.
+- CI verde com `flutter analyze`, `flutter test`, APK debug e `npm test`.
 
 ## 📁 Estrutura
 
@@ -115,8 +117,9 @@ Detalhes em [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) e [`docs/DESIGN_SYSTE
 ## 📌 Limitações conhecidas
 
 - Publicação em loja, assinatura real e envio de e-mail não fazem parte do escopo.
-- iOS/web/desktop não são alvos desta entrega.
-- A mídia offline aumenta o tamanho do APK; a evolução prevista é CDN/Asset Delivery.
+- iOS/web/desktop não são alvos desta entrega (o build web existe para demonstração).
+- A mídia é offline e o APK de debug ainda é grande; a evolução prevista é CDN/Asset Delivery.
+- O áudio usa `audioplayers`; player em background com controles na notificação está no roadmap.
 
 ## 🗺️ Próximos passos
 

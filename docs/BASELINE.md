@@ -42,14 +42,18 @@ Registro do estado encontrado antes de qualquer alteração de comportamento.
 | `flutter build apk --debug` | pendente: Android SDK e Developer Mode não estão configurados |
 | `cd backend && npm ci` | OK, 120 pacotes |
 
-## Primeiras correções aplicadas
+## Resultado da modernização
 
-- `AssetManifest.json` eliminado; novo `AssetResolver` usa `AssetManifest.loadFromAssetBundle` com cache e fallback.
-- Cartas do dia, cartas de organização, áudio e logos temáticos passaram a usar o resolvedor único.
-- Gerador de BR Code PIX com CRC16 válido, coberto por testes.
-- Migração dos imports de Material para o pacote oficial `material_ui` (Flutter 3.50).
-- Backend incorporado ao monorepo em `backend/`; submódulo quebrado removido.
-- `build_log.txt` removido do versionamento.
-- CI de portfólio criado em `.github/workflows/ci.yml` (analyze, testes e APK debug, sem secrets).
+- **App**: 15 testes passando, `flutter analyze` sem issues, APK debug gerado no CI.
+- **Backend**: 65 testes passando (Jest + Supertest + Mongo em memória).
+- **Mídia**: reduzida de **160,8 MB para 74,5 MB** com recompressão de áudio/vídeo e cartas em WebP.
+- **CI**: workflow `CI` verde em `main` (analyze, testes, APK debug, backend).
+- **Documentação**: README de portfólio, arquitetura, design system, testes e capturas de tela.
 
-Este documento será atualizado ao final da Fase 0 com os resultados medidos.
+## Próximos passos
+
+- Promover `modernization` a `main` e manter a tag `legacy/main-2025-10` como backup.
+- Lembretes diários configuráveis.
+- Histórico/streak em SQLite.
+- Player em background.
+- Testes de integração e golden tests.
