@@ -1,36 +1,6 @@
-import { randomUUID } from 'node:crypto';
-
-const REQUEST_ID_PATTERN = /^[A-Za-z0-9._:-]{8,128}$/;
-
 /**
- * Garante um request id por requisição, propaga no header e mede a duração.
+ * 404 padronizado.
  */
-export function requestContext({ logger }) {
-  return (req, res, next) => {
-    const incoming = req.get('x-request-id');
-    req.id = REQUEST_ID_PATTERN.test(incoming || '') ? incoming : randomUUID();
-    req.startedAt = process.hrtime.bigint();
-    res.setHeader('X-Request-Id', req.id);
-
-    res.on('finish', () => {
-      const durationMs =
-        Number(process.hrtime.bigint() - req.startedAt) / 1_000_000;
-      const level = res.statusCode >= 500 ? 'error' : 'info';
-      logger[level]('request', {
-        requestId: req.id,
-        method: req.method,
-        path: req.originalUrl,
-        status: res.statusCode,
-        durationMs: Math.round(durationMs * 100) / 100,
-        ip: req.ip,
-      });
-    });
-
-    next();
-  };
-}
-
-/** 404 padronizado. */
 export function notFoundHandler(req, res) {
   res.status(404).json({
     error: {
@@ -44,6 +14,9 @@ export function notFoundHandler(req, res) {
 /**
  * Error handler central. Toda resposta de erro segue
  * `{ error: { code, message, details?, requestId } }`.
+ *
+ * Erros operacionais (ApiError) mantêm a mensagem mesmo em 5xx; erros
+ * inesperados são mascarados fora de development para não vazar stack.
  */
 export function errorHandler({ logger, env }) {
   // eslint-disable-next-line no-unused-vars
@@ -52,6 +25,7 @@ export function errorHandler({ logger, env }) {
     let code = error.code || 'INTERNAL_ERROR';
     let message = error.message || 'Erro interno do servidor.';
     let details = error.details;
+    const operational = error.expose === true;
 
     if (error.type === 'entity.parse.failed') {
       status = 400;
@@ -86,11 +60,14 @@ export function errorHandler({ logger, env }) {
         method: req.method,
         path: req.originalUrl,
       });
-      if (env.NODE_ENV !== 'development') {
+
+      if (!operational && env.NODE_ENV !== 'development') {
         message = 'Erro interno do servidor.';
         details = undefined;
-      } else {
-        details = details ?? error.message;
+      } else if (env.NODE_ENV !== 'development') {
+        // Detalhes técnicos de erros operacionais (ex.: causa do provedor)
+        // ficam restritos ao ambiente de desenvolvimento.
+        details = undefined;
       }
     } else {
       logger.warn('requisição rejeitada', {

@@ -9,8 +9,9 @@ import YAML from 'yaml';
 import { loadEnv } from './config/env.js';
 import { isDBConnected } from './config/database.js';
 import { createAuth } from './middleware/auth.js';
-import { errorHandler, notFoundHandler, requestContext } from './middleware/error.js';
+import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { createRateLimiters } from './middleware/rateLimit.js';
+import { requestContext } from './middleware/requestContext.js';
 import { createApiRouter } from './routes/index.js';
 import { createLegacyRoutes } from './routes/legacy.js';
 import { createWebhookRoutes } from './routes/webhooks.js';
@@ -57,17 +58,6 @@ export function createApp({ env: providedEnv } = {}) {
 
   app.use(requestContext({ logger }));
 
-  const health = (req, res) => {
-    const db = isDBConnected();
-    res.status(200).json({
-      status: 'ok',
-      database: db ? 'connected' : 'disconnected',
-      timestamp: new Date().toISOString(),
-      version: '1.0.0',
-    });
-  };
-  app.get('/health', health);
-
   const apiHelmet = helmet();
   const docsHelmet = helmet({
     contentSecurityPolicy: {
@@ -94,6 +84,16 @@ export function createApp({ env: providedEnv } = {}) {
       maxAge: 86_400,
     })
   );
+
+  app.get('/health', (req, res) => {
+    const db = isDBConnected();
+    res.status(200).json({
+      status: 'ok',
+      database: db ? 'connected' : 'disconnected',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+    });
+  });
 
   // Webhooks precisam do corpo cru: montar antes do express.json().
   app.use('/api/v1/webhooks', createWebhookRoutes({ limiters }));

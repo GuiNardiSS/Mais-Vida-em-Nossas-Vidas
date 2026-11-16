@@ -215,7 +215,7 @@ export async function activateWithDemoToken({ deviceId, token, env, deviceInfo }
  * Só revoga se o pagamento for o último que concedeu acesso, preservando
  * renovações posteriores legítimas.
  */
-export async function revokeForPayment({ payment, reason, env }) {
+export async function revokeForPayment({ payment, reason }) {
   const now = new Date();
   const updatedPayment = await Payment.findOneAndUpdate(
     { _id: payment._id, status: { $in: ['paid', 'pending'] } },

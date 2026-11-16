@@ -226,7 +226,7 @@ class _SocialTile extends StatelessWidget {
 
   final String label;
   final String handle;
-  final IconData icon;
+  final FaIconData icon;
   final Color color;
   final VoidCallback onTap;
 

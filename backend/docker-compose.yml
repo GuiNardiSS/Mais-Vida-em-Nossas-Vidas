@@ -1,0 +1,62 @@
+services:
+  api:
+    build:
+      context: .
+    ports:
+      - '3000:3000'
+    environment:
+      # Ambiente de desenvolvimento/portfólio. NÃO use estes valores em produção.
+      NODE_ENV: development
+      PORT: '3000'
+      MONGODB_URI: mongodb://mongo:27017/maisvidaapp
+      JWT_SECRET: docker-dev-secret-change-me-before-production
+      CORS_ORIGIN: '*'
+      DEMO_MODE: 'true'
+      DEMO_ACTIVATION_TOKEN: demo-activation-token
+      PIX_PROVIDER: mock
+      PIX_KEY: demo@maisvida.app
+      PIX_RECEIVER_NAME: MAIS VIDA
+      PIX_RECEIVER_CITY: SAO PAULO
+      PLAN_AMOUNT_CENTS: '499'
+      PLAN_DAYS: '30'
+      LOG_LEVEL: info
+      DOCS_ENABLED: 'true'
+      # Stripe (opcional): defina no shell ou em um .env do Compose.
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -qO-
+        - http://127.0.0.1:3000/health
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  mongo:
+    image: mongo:7
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - db.adminCommand('ping').ok
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+volumes:
+  mongo-data:

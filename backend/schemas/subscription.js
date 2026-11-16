@@ -48,7 +48,7 @@ export const stripeWebhookSchema = z
     id: z.string().optional(),
     type: z.string().min(1),
     data: z.object({
-      object: z.record(z.any()),
+      object: z.record(z.string(), z.any()),
     }),
   })
   .passthrough();

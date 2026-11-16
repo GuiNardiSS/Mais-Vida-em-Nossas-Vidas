@@ -5,7 +5,6 @@ import {
 import {
   cancelSubscription,
   getSubscriptionInfo,
-  toSubscriptionView,
   validateSubscription,
 } from '../services/subscriptionService.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -44,27 +43,27 @@ export const activateSubscription = asyncHandler(async (req, res) => {
 
   let result;
 
-  if (demoToken) {
-    result = await activateWithDemoToken({
-      deviceId,
-      token: demoToken,
-      env,
-      deviceInfo,
-    });
-  } else if (!paymentId) {
-    throw ApiError.badRequest(
-      'PAYMENT_REQUIRED',
-      transactionId
-        ? 'transactionId não ativa assinatura. Envie o paymentId de um pagamento confirmado.'
-        : 'paymentId é obrigatório para ativar a assinatura.'
-    );
-  } else {
+  if (paymentId) {
     result = await activateFromPayment({
       deviceId,
       paymentId,
       env,
       deviceInfo,
     });
+  } else if (demoToken) {
+    result = await activateWithDemoToken({
+      deviceId,
+      token: demoToken,
+      env,
+      deviceInfo,
+    });
+  } else {
+    throw ApiError.badRequest(
+      'PAYMENT_REQUIRED',
+      transactionId
+        ? 'transactionId não ativa assinatura. Envie o paymentId de um pagamento confirmado.'
+        : 'paymentId é obrigatório para ativar a assinatura.'
+    );
   }
 
   const token = req.app.locals.auth.generateDeviceToken(deviceId);
@@ -72,7 +71,6 @@ export const activateSubscription = asyncHandler(async (req, res) => {
 
   res.status(status).json(buildActivationResponse({ result, deviceId, token }));
 });
-
 /** POST /api/v1/subscription/validate */
 export const validate = asyncHandler(async (req, res) => {
   const result = await validateSubscription(req.body.deviceId);
@@ -96,5 +94,3 @@ export const cancel = asyncHandler(async (req, res) => {
   const result = await cancelSubscription(req.body.deviceId, req.body.reason);
   res.json(result);
 });
-
-export { toSubscriptionView };

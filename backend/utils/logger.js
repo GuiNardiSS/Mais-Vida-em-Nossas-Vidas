@@ -20,7 +20,8 @@ const serializeError = (error) => ({
 });
 
 export function createLogger({ level = DEFAULT_LEVEL, base = {} } = {}) {
-  let currentLevel = LEVELS[level] ?? LEVELS.info;
+  let currentLevelName = LEVELS[level] !== undefined ? level : 'info';
+  let currentLevel = LEVELS[currentLevelName];
 
   const write = (name, fields) => {
     if (LEVELS[name] < currentLevel) return;
@@ -49,9 +50,12 @@ export function createLogger({ level = DEFAULT_LEVEL, base = {} } = {}) {
     info: (message, fields = {}) => write('info', { msg: message, ...fields }),
     warn: (message, fields = {}) => write('warn', { msg: message, ...fields }),
     error: (message, fields = {}) => write('error', { msg: message, ...fields }),
-    child: (fields) => createLogger({ level, base: { ...base, ...fields } }),
+    child: (fields) =>
+      createLogger({ level: currentLevelName, base: { ...base, ...fields } }),
     setLevel: (nextLevel) => {
-      currentLevel = LEVELS[nextLevel] ?? currentLevel;
+      if (LEVELS[nextLevel] === undefined) return;
+      currentLevelName = nextLevel;
+      currentLevel = LEVELS[nextLevel];
     },
     level: () => currentLevel,
   };

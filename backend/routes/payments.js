@@ -22,17 +22,20 @@ import {
 export function createPaymentHandlers({ limiters }) {
   return {
     createPix: [
+      requireDatabase,
       limiters.payment,
       validate({ body: createPixSchema }),
       createPix,
     ],
-    getPix: [validate(getPixSchema), getPix],
+    getPix: [requireDatabase, validate(getPixSchema), getPix],
     simulatePix: [
+      requireDatabase,
       limiters.payment,
       validate(simulatePixSchema),
       simulatePix,
     ],
     createStripeIntent: [
+      requireDatabase,
       limiters.payment,
       validate({ body: createStripeIntentSchema }),
       createStripePaymentIntent,
@@ -44,7 +47,6 @@ export function createPaymentRoutes({ limiters }) {
   const router = Router();
   const handlers = createPaymentHandlers({ limiters });
 
-  router.use(requireDatabase);
   router.post('/pix', ...handlers.createPix);
   router.get('/pix/:id', ...handlers.getPix);
   router.post('/pix/:id/simulate', ...handlers.simulatePix);

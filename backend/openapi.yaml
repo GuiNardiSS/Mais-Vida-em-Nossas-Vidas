@@ -1,0 +1,699 @@
+openapi: 3.0.3
+info:
+  title: Mais Vida - Backend de Pagamentos
+  version: 1.0.0
+  description: |
+    API de assinaturas por dispositivo com PIX (mock/Mercado Pago/Asaas/Efi),
+    cartão via Stripe e ativação de entitlement baseada em pagamento confirmado.
+
+    ## Modo demonstração
+    Com `DEMO_MODE=true` e `PIX_PROVIDER=mock`, é possível criar uma cobrança PIX
+    mock e confirmá-la em `POST /api/v1/payments/pix/{id}/simulate`, sem
+    credenciais externas. Fora do modo demo, a ativação depende de webhook
+    assinado do Stripe ou confirmação do provedor PIX.
+
+    ## Compatibilidade
+    As rotas antigas (`/pix/gerar`, `/pagamento`, `/subscription/*`) continuam
+    disponíveis como aliases, com a mesma lógica e validação das rotas `/api/v1`.
+  contact:
+    name: Mais Vida
+servers:
+  - url: http://localhost:3000
+    description: Desenvolvimento local
+tags:
+  - name: Health
+  - name: Payments
+  - name: Subscription
+  - name: Webhooks
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Liveness probe
+      responses:
+        '200':
+          description: API online (o campo database indica o estado do MongoDB)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /api/v1/payments/pix:
+    post:
+      tags: [Payments]
+      summary: Cria cobrança PIX
+      description: |
+        Cria uma cobrança PIX. O provedor é definido por `PIX_PROVIDER`
+        (default `mock`). O BR Code gerado é EMV válido com CRC16.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId]
+              properties:
+                deviceId:
+                  type: string
+                  minLength: 4
+                  maxLength: 128
+                  example: flutter-demo-device
+                amount:
+                  type: integer
+                  minimum: 100
+                  maximum: 1000000
+                  description: Valor em centavos (default PLAN_AMOUNT_CENTS).
+                  example: 499
+                valor:
+                  type: integer
+                  deprecated: true
+                  description: Alias antigo de `amount` (centavos).
+                  example: 499
+                deviceInfo:
+                  $ref: '#/components/schemas/DeviceInfo'
+      responses:
+        '201':
+          description: Cobrança criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixCharge'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/payments/pix/{id}:
+    get:
+      tags: [Payments]
+      summary: Consulta status da cobrança PIX
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - name: deviceId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Quando informado, retorna 404 se o pagamento for de outro dispositivo.
+      responses:
+        '200':
+          description: Status atual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixCharge'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/payments/pix/{id}/simulate:
+    post:
+      tags: [Payments]
+      summary: Simula pagamento PIX (somente DEMO_MODE)
+      description: |
+        Marca uma cobrança **mock** como paga e ativa a assinatura de forma
+        idempotente. Retorna 403 quando `DEMO_MODE` não está habilitado.
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: string
+                  description: Se informado, precisa ser o dono do pagamento.
+      responses:
+        '200':
+          description: Pagamento simulado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulateResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Pagamento não simulável ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /api/v1/payments/stripe/intent:
+    post:
+      tags: [Payments]
+      summary: Cria PaymentIntent do Stripe
+      description: Requer `STRIPE_SECRET_KEY`. A assinatura só é ativada pelo webhook.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId]
+              properties:
+                deviceId:
+                  type: string
+                  example: flutter-demo-device
+                amount:
+                  type: integer
+                  minimum: 100
+                  example: 499
+                valor:
+                  type: integer
+                  deprecated: true
+      responses:
+        '201':
+          description: PaymentIntent criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clientSecret:
+                    type: string
+                  paymentIntentId:
+                    type: string
+                  paymentId:
+                    type: string
+                  amount:
+                    type: integer
+                  currency:
+                    type: string
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/v1/webhooks/stripe:
+    post:
+      tags: [Webhooks]
+      summary: Webhook do Stripe
+      description: |
+        Valida `stripe-signature` com `STRIPE_WEBHOOK_SECRET` quando configurado.
+        Ativa assinatura em `payment_intent.succeeded` e revoga em
+        `charge.refunded` (estorno total) ou `payment_intent.canceled`.
+      parameters:
+        - name: stripe-signature
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Evento do Stripe (corpo cru)
+      responses:
+        '200':
+          description: Evento processado (inclusive duplicados)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                  activated:
+                    type: boolean
+                  revoked:
+                    type: boolean
+                  ignored:
+                    type: string
+        '400':
+          description: Assinatura inválida ou payload inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /api/v1/subscription/activate:
+    post:
+      tags: [Subscription]
+      summary: Ativa assinatura com pagamento confirmado
+      description: |
+        Exige `paymentId` de um pagamento com status `paid` pertencente ao
+        `deviceId`, ou `demoToken` quando `DEMO_MODE=true`. Um `transactionId`
+        arbitrário **não** ativa assinatura (retorna 400 `PAYMENT_REQUIRED`).
+        A operação é idempotente por pagamento.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId]
+              properties:
+                deviceId:
+                  type: string
+                  example: flutter-demo-device
+                paymentId:
+                  type: string
+                  example: 665f2b0f5f1b2c0012345678
+                demoToken:
+                  type: string
+                  description: Token de demonstração (apenas DEMO_MODE).
+                transactionId:
+                  type: string
+                  deprecated: true
+                  description: Aceito apenas para retornar erro explicativo.
+                paymentMethod:
+                  type: string
+                  enum: [pix, card]
+                  description: Ignorado; o método vem do pagamento.
+                deviceInfo:
+                  $ref: '#/components/schemas/DeviceInfo'
+      responses:
+        '201':
+          description: Assinatura ativada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivationResponse'
+        '200':
+          description: Assinatura já ativa para este pagamento (idempotente)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          description: Token de demonstração inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Pagamento não pago ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /api/v1/subscription/validate:
+    post:
+      tags: [Subscription]
+      summary: Valida assinatura do dispositivo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId]
+              properties:
+                deviceId:
+                  type: string
+                  example: flutter-demo-device
+      responses:
+        '200':
+          description: Resultado da validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/subscription/info:
+    get:
+      tags: [Subscription]
+      summary: Informações da assinatura
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - name: deviceId
+          in: query
+          required: true
+          schema:
+            type: string
+          example: flutter-demo-device
+      responses:
+        '200':
+          description: Assinatura encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/subscription/cancel:
+    post:
+      tags: [Subscription]
+      summary: Cancela assinatura
+      security:
+        - bearerAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId]
+              properties:
+                deviceId:
+                  type: string
+                reason:
+                  type: string
+                  maxLength: 200
+      responses:
+        '200':
+          description: Assinatura cancelada (idempotente)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  alreadyCancelled:
+                    type: boolean
+                  message:
+                    type: string
+                  subscription:
+                    $ref: '#/components/schemas/SubscriptionInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /pix/gerar:
+    post:
+      deprecated: true
+      tags: [Payments]
+      summary: Alias legado de POST /api/v1/payments/pix
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [valor, deviceId]
+              properties:
+                valor:
+                  type: integer
+                  example: 499
+                deviceId:
+                  type: string
+      responses:
+        '201':
+          description: Cobrança criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PixCharge'
+  /pagamento:
+    post:
+      deprecated: true
+      tags: [Payments]
+      summary: Alias legado de POST /api/v1/payments/stripe/intent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [valor, deviceId]
+              properties:
+                valor:
+                  type: integer
+                deviceId:
+                  type: string
+      responses:
+        '201':
+          description: PaymentIntent criado
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /subscription/activate:
+    post:
+      deprecated: true
+      tags: [Subscription]
+      summary: Alias legado de POST /api/v1/subscription/activate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [deviceId]
+              properties:
+                deviceId:
+                  type: string
+                paymentId:
+                  type: string
+      responses:
+        '201':
+          description: Assinatura ativada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivationResponse'
+  /subscription/info:
+    get:
+      deprecated: true
+      tags: [Subscription]
+      summary: Alias legado de GET /api/v1/subscription/info
+      parameters:
+        - name: deviceId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assinatura encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionInfo'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    PaymentId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+      example: 665f2b0f5f1b2c0012345678
+  responses:
+    ValidationError:
+      description: Erro de validação (Zod)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: Dados de entrada inválidos.
+              details:
+                - source: body
+                  path: body.amount
+                  message: amount mínimo é 100 (R$ 1,00).
+              requestId: 4f6a7f0b-8f0c-4a9c-9f51-2a1b3c4d5e6f
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: Operação não permitida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    RateLimited:
+      description: Limite de requisições excedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    ServiceUnavailable:
+      description: Serviço indisponível (DB offline ou provedor não configurado)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+            details:
+              description: 'Detalhes opcionais (ex.: issues do Zod)'
+            requestId:
+              type: string
+              format: uuid
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        database:
+          type: string
+          enum: [connected, disconnected]
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+    DeviceInfo:
+      type: object
+      properties:
+        platform:
+          type: string
+          example: android
+        model:
+          type: string
+          example: Pixel 7
+        version:
+          type: string
+          example: '1.0.0'
+    PixCharge:
+      type: object
+      properties:
+        paymentId:
+          type: string
+        id:
+          type: string
+        provider:
+          type: string
+          enum: [mock, mercadopago, asaas, efi]
+        method:
+          type: string
+          enum: [pix]
+        status:
+          type: string
+          enum: [pending, paid, expired, cancelled, refunded, failed]
+        amount:
+          type: integer
+          description: Em centavos
+        currency:
+          type: string
+          example: BRL
+        transactionId:
+          type: string
+        brCode:
+          type: string
+          description: BR Code EMV (copia e cola)
+        copiaECola:
+          type: string
+          description: Alias legado de brCode
+        qrCodeImage:
+          type: string
+          nullable: true
+        imagemQrCode:
+          type: string
+          nullable: true
+          description: Alias legado de qrCodeImage
+        expiresAt:
+          type: string
+          format: date-time
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        entitlementApplied:
+          type: boolean
+        isMock:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    SimulateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        activated:
+          type: boolean
+        payment:
+          $ref: '#/components/schemas/PixCharge'
+        subscription:
+          $ref: '#/components/schemas/SubscriptionSummary'
+    ActivationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        activated:
+          type: boolean
+        message:
+          type: string
+        paymentId:
+          type: string
+          nullable: true
+        subscription:
+          $ref: '#/components/schemas/SubscriptionSummary'
+        token:
+          type: string
+          description: JWT do dispositivo (30 dias por padrão)
+    SubscriptionSummary:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          example: flutter-...
+        isActive:
+          type: boolean
+        status:
+          type: string
+          enum: [pending, active, expired, cancelled]
+        expiryDate:
+          type: string
+          format: date-time
+        daysRemaining:
+          type: integer
+    SubscriptionInfo:
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionSummary'
+        - type: object
+          properties:
+            startDate:
+              type: string
+              format: date-time
+            paymentMethod:
+              type: string
+              enum: [pix, card, demo, none]
+            amount:
+              type: integer
+            createdAt:
+              type: string
+              format: date-time
+    ValidationResponse:
+      type: object
+      properties:
+        isActive:
+          type: boolean
+        status:
+          type: string
+          enum: [active, pending, expired, cancelled, free]
+        expiryDate:
+          type: string
+          format: date-time
+          nullable: true
+        daysRemaining:
+          type: integer
+        message:
+          type: string

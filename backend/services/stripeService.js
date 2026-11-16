@@ -125,6 +125,10 @@ export async function processStripeEvent({ event, env }) {
         return { received: true, ignored: 'payment_not_found' };
       }
 
+      if (!['pending', 'paid'].includes(payment.status)) {
+        return { received: true, ignored: `payment_${payment.status}` };
+      }
+
       const paid = await markPaymentPaid({
         payment,
         source: `stripe:${event.id || event.type}`,
@@ -163,7 +167,6 @@ export async function processStripeEvent({ event, env }) {
       const result = await revokeForPayment({
         payment,
         reason: 'PaymentIntent cancelado no Stripe.',
-        env,
       });
       return { received: true, paymentId: payment.id, revoked: result.revoked };
     }
@@ -184,7 +187,6 @@ export async function processStripeEvent({ event, env }) {
       const result = await revokeForPayment({
         payment,
         reason: 'Pagamento estornado no Stripe.',
-        env,
       });
       return { received: true, paymentId: payment.id, revoked: result.revoked };
     }

@@ -84,10 +84,7 @@ export async function cancelSubscription(deviceId, reason) {
 
   const alreadyCancelled = subscription.status === 'cancelled';
   if (!alreadyCancelled) {
-    subscription.status = 'cancelled';
-    subscription.cancelledAt = new Date();
-    subscription.revocationReason = reason;
-    await subscription.save();
+    await subscription.cancel(reason);
   }
 
   return {

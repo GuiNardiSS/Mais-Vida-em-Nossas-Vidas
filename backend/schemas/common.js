@@ -40,5 +40,3 @@ export const amountFields = {
 /** Resolve o valor canônico (amount > valor > padrão do plano). */
 export const resolveAmount = (input, fallback) =>
   input.amount ?? input.valor ?? fallback;
-
-export const emptyBodySchema = z.object({}).passthrough().optional();

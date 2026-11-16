@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { z } from 'zod';
 
 import { info } from '../controllers/subscriptionController.js';
-import { requireDatabase } from '../middleware/requireDatabase.js';
 import { validate } from '../middleware/validate.js';
 import { deviceIdSchema } from '../schemas/common.js';
 import { createPaymentHandlers } from './payments.js';
@@ -35,8 +34,6 @@ export function createLegacyRoutes({ limiters, auth }) {
   const router = Router();
   const payment = createPaymentHandlers({ limiters });
   const subscription = createSubscriptionHandlers({ limiters, auth });
-
-  router.use(requireDatabase);
 
   router.post('/pix/gerar', ...payment.createPix);
   router.get('/pix/:id', ...payment.getPix);
