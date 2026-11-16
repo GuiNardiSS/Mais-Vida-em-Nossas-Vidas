@@ -177,14 +177,28 @@ class AudioService {
     }
   }
 
+  Future<void> seek(Duration position) async {
+    try {
+      await _audioPlayer.seek(position);
+    } catch (e) {
+      debugPrint('Erro ao avançar áudio: $e');
+    }
+  }
+
   bool get isPlaying => _audioPlayer.state == PlayerState.playing;
   bool get isPaused => _audioPlayer.state == PlayerState.paused;
 
   String? get currentlyPlayingPath => _currentlyPlayingPath;
 
-  // Stream para escutar mudanças no estado do player
+  // Streams para acompanhar reprodução
   Stream<PlayerState> get onPlayerStateChanged =>
       _audioPlayer.onPlayerStateChanged;
+
+  Stream<Duration> get onPositionChanged => _audioPlayer.onPositionChanged;
+
+  Stream<Duration> get onDurationChanged => _audioPlayer.onDurationChanged;
+
+  Stream<void> get onPlayerComplete => _audioPlayer.onPlayerComplete;
 
   void dispose() {
     _audioPlayer.dispose();

@@ -4,6 +4,7 @@ import 'device_service.dart';
 import 'app_logger.dart';
 import 'secure_storage_service.dart';
 import '../config/api_config.dart';
+import '../core/demo/demo_config.dart';
 
 /// Status da assinatura
 enum SubscriptionStatus {
@@ -75,7 +76,25 @@ class SubscriptionService {
       'transactionId': transactionId,
       'paymentMethod': paymentMethod,
       'amount': amount,
+      'demo': kDemoMode,
     });
+
+    // Modo demonstração: ativa localmente, sem cobrança e sem rede.
+    if (kDemoMode) {
+      final expiryDate = DateTime.now().add(kSubscriptionPeriod);
+      await _updateLocalStatus(
+        SubscriptionStatus.active,
+        expiryDate,
+        transactionId,
+      );
+      appLogger.logSubscription('ativada (demonstração)', data: {
+        'transactionId': transactionId,
+        'paymentMethod': paymentMethod,
+        'amount': amount,
+        'expiryDate': expiryDate.toIso8601String(),
+      });
+      return true;
+    }
 
     try {
       final deviceId = await DeviceService.getDeviceId();
@@ -134,6 +153,11 @@ class SubscriptionService {
   /// Valida assinatura com o backend (sincronização)
   static Future<bool> validateSubscription() async {
     appLogger.debug('Validando assinatura com backend');
+
+    // No modo demonstração a assinatura é local e não expira por rede.
+    if (kDemoMode) {
+      return isPremium();
+    }
 
     try {
       final deviceId = await DeviceService.getDeviceId();

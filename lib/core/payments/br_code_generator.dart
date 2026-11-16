@@ -26,7 +26,8 @@ class BrCodeGenerator {
       merchantAccount.write(_tlv('02', _sanitize(description, maxLength: 72)));
     }
 
-    final additionalData = _tlv('05', txidSanitized.isEmpty ? '***' : txidSanitized);
+    final additionalData =
+        _tlv('05', txidSanitized.isEmpty ? '***' : txidSanitized);
 
     final payload = StringBuffer()
       ..write(_tlv('00', '01'))
@@ -53,17 +54,54 @@ class BrCodeGenerator {
   /// Remove acentos, caracteres de controle e limita o tamanho.
   static String _sanitize(String input, {required int maxLength}) {
     const replacements = {
-      'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',
-      'Á': 'A', 'À': 'A', 'Â': 'A', 'Ã': 'A', 'Ä': 'A',
-      'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
-      'É': 'E', 'È': 'E', 'Ê': 'E', 'Ë': 'E',
-      'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
-      'Í': 'I', 'Ì': 'I', 'Î': 'I', 'Ï': 'I',
-      'ó': 'o', 'ò': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
-      'Ó': 'O', 'Ò': 'O', 'Ô': 'O', 'Õ': 'O', 'Ö': 'O',
-      'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u',
-      'Ú': 'U', 'Ù': 'U', 'Û': 'U', 'Ü': 'U',
-      'ç': 'c', 'Ç': 'C', 'ñ': 'n', 'Ñ': 'N',
+      'á': 'a',
+      'à': 'a',
+      'â': 'a',
+      'ã': 'a',
+      'ä': 'a',
+      'Á': 'A',
+      'À': 'A',
+      'Â': 'A',
+      'Ã': 'A',
+      'Ä': 'A',
+      'é': 'e',
+      'è': 'e',
+      'ê': 'e',
+      'ë': 'e',
+      'É': 'E',
+      'È': 'E',
+      'Ê': 'E',
+      'Ë': 'E',
+      'í': 'i',
+      'ì': 'i',
+      'î': 'i',
+      'ï': 'i',
+      'Í': 'I',
+      'Ì': 'I',
+      'Î': 'I',
+      'Ï': 'I',
+      'ó': 'o',
+      'ò': 'o',
+      'ô': 'o',
+      'õ': 'o',
+      'ö': 'o',
+      'Ó': 'O',
+      'Ò': 'O',
+      'Ô': 'O',
+      'Õ': 'O',
+      'Ö': 'O',
+      'ú': 'u',
+      'ù': 'u',
+      'û': 'u',
+      'ü': 'u',
+      'Ú': 'U',
+      'Ù': 'U',
+      'Û': 'U',
+      'Ü': 'U',
+      'ç': 'c',
+      'Ç': 'C',
+      'ñ': 'n',
+      'Ñ': 'N',
     };
 
     final buffer = StringBuffer();

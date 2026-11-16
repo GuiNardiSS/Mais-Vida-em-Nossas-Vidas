@@ -69,8 +69,7 @@ class AssetResolver {
 
     // Varre a pasta para aceitar variações do nome sem confundir 1 com 10.
     final prefix = '$folder/';
-    final pattern =
-        RegExp(r'^Back[^0-9]*\(?\s*(\d{1,2})\s*\)?\.(?:png|PNG)$');
+    final pattern = RegExp(r'^Back[^0-9]*\(?\s*(\d{1,2})\s*\)?\.(?:png|PNG)$');
     final available = await assets();
     for (final path in available.where((p) => p.startsWith(prefix))) {
       final name = path.substring(prefix.length);
